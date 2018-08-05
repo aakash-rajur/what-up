@@ -1,0 +1,76 @@
+/*noinspection CssUnknownTarget*/
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:300,400,400i,600,600i,700,700i");
+@import "./utils/variables.css";
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    height: 100%;
+    background: whitesmoke;
+}
+
+body::-webkit-scrollbar {
+    width: 0;
+}
+
+a {
+    color: gray;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+input:focus{
+    outline-color: dodgerblue;
+}
+
+button {
+    user-select: none;
+}
+
+#root {
+    height: 100%;
+}
+
+.app-width {
+    width: var(--app-width);
+}
+
+.icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    cursor: pointer;
+    user-select: none;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar-track {
+    background-color: lightgray;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: var(--accent-opaque);
+}
+
+@media (max-width: 600px) {
+    .app-width {
+        width: initial;
+        margin: 0 24px;
+    }
+}

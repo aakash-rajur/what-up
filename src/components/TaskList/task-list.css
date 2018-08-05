@@ -1,0 +1,33 @@
+.loading-container, .error-container, .no-tasks, .task-list {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.loading-container {
+    display: flex;
+    height: 200px;
+    justify-content: center;
+    align-items: center;
+}
+
+.error-container {
+    height: 200px;
+    justify-content: center;
+    align-items: center;
+}
+
+.no-tasks {
+    height: 200px;
+    font-weight: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.task-list {
+    display: grid;
+    grid-template: auto/auto;
+    grid-gap: 16px;
+    justify-content: center;
+    margin: 30px 0;
+}

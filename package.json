@@ -1,0 +1,36 @@
+{
+  "name": "what-up",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "apollo-server-express": "^2.0.0",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.4",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "graphql": "^0.13.2",
+    "morgan": "^1.9.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "server": "nodemon -w server -w server/index.js server"
+  },
+  "devDependencies": {
+    "apollo-cache-inmemory": "^1.3.0-beta.6",
+    "apollo-client": "^2.3.7",
+    "apollo-link": "^1.2.2",
+    "apollo-link-error": "^1.1.0",
+    "apollo-link-http": "^1.5.4",
+    "apollo-link-ws": "^1.0.8",
+    "apollo-utilities": "^1.0.17",
+    "graphql-tag": "^2.9.2",
+    "prop-types": "^15.6.2",
+    "react": "^16.4.1",
+    "react-apollo": "^2.1.9",
+    "react-dom": "^16.4.1",
+    "react-scripts": "1.1.4"
+  }
+}

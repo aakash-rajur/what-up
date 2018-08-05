@@ -1,0 +1,116 @@
+@import url("../../utils/variables.css");
+
+.accent-font-color {
+    color: var(--accent-color);
+}
+
+#root {
+    text-align: center;
+    color: gray;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#root > * {
+    text-align: initial;
+}
+
+#root .title {
+    font-weight: 100;
+    font-size: 6em;
+    text-align: center;
+    margin: 0.25em 0;
+    transition: all 0.3s;
+}
+
+.new-task-container {
+    display: grid;
+    grid-template: auto/auto;
+    grid-gap: 8px;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.new-task {
+    border: none;
+    padding: 0.5em 1em 0.5em 2em;
+    font-size: 2em;
+    font-weight: 100;
+    border-radius: 4px;
+    color: gray;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    background: white;
+    transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+    grid-row: 1;
+    grid-column: 1;
+}
+
+.new-task:hover, .new-task:focus {
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+.check-all {
+    grid-row: 1;
+    grid-column: 1;
+    align-self: center;
+    margin-left: 1.5em;
+    opacity: 0.5;
+}
+
+.filter-container {
+    display: grid;
+    grid-template: auto/repeat(4, auto);
+    grid-gap: 8px;
+    justify-content: center;
+}
+
+#root .documentation {
+    text-align: center;
+    font-size: 0.7em;
+    padding: 2em 0;
+    line-height: 2em;
+    font-weight: 100;
+    color: lightgray;
+}
+
+#root .documentation em {
+    font-weight: 100;
+}
+
+#root .documentation a {
+    color: lightblue;
+}
+
+@media (max-width: 600px) {
+    #root .title {
+        font-size: 4em;
+    }
+
+    .new-task-container {
+        grid-template: auto/1fr;
+    }
+
+    .new-task {
+        font-size: 1.5em;
+    }
+
+    .check-all {
+        margin-left: 2.5em;
+    }
+
+    .task-list {
+        grid-template: auto/1fr;
+    }
+}
+
+@media (pointer: coarse) and (min-width: 450px) {
+    .filter-container {
+    }
+}
+
+
+

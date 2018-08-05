@@ -1,0 +1,12 @@
+:root {
+    --accent-color: rgba(175, 47, 47, 0.15);
+    --accent-opaque: #cc9a9a;
+    --app-width: 550px;
+    --icon-size: 24px;
+}
+
+@media (max-width: 600px) {
+    :root {
+        --icon-size: 20px;
+    }
+}
