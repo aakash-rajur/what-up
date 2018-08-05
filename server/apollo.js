@@ -48,7 +48,7 @@ function resolverGenerator(DB) {
             edit: (root, {id, description}) => {
                 let {data = []} = DB,
                     task = findTask(data, id);
-                if (task.description === description) return;
+                if (task.description === description) return task;
                 task.description = description;
                 task.updated = getTimestamp();
                 notify(TASKS_CHANGED, getStats(data));
