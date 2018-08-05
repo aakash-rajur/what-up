@@ -6,14 +6,30 @@ const morgan = require('morgan');
 const http = require('http');
 
 const PORT = process.env.SERVER_PORT;
+const {NODE_ENV} = process.env;
+const TESTING = NODE_ENV === 'test';
+let server = null;
 
-function main() {
+function stopServer() {
+    if (!server) return;
+    console.log('\nshutting down server');
+    server.close();
+    console.log('server shut down');
+    process.exit(0);
+}
+
+function startServer() {
     return new Promise((resolve, reject) => {
         let DB = {data: require('../mock/tasks')},
             apollo = getApolloServer(DB),
             app = express();
 
-        app.use(morgan('combined'));
+        !TESTING && app.use(morgan('combined'));
+        if (NODE_ENV === 'production') {
+            process.on('SIGINT', stopServer);
+            process.on('SIGUSR1', stopServer);
+            process.on('SIGUSR2', stopServer);
+        }
 
         app.use('*', cors({origin: 'http://localhost:4000'}));
 
@@ -21,13 +37,21 @@ function main() {
 
         app.get('/data', (req, res) => res.send(DB));
 
-        const server = http.createServer(app);
+        server = http.createServer(app);
         apollo.installSubscriptionHandlers(server);
 
-        server.listen(PORT, err =>
-        err ? reject(err): resolve(`🚀 Server ready at http://localhost:${PORT}${apollo.graphqlPath}\n🚀 Subscriptions ready at ws://localhost:${PORT}${apollo.subscriptionsPath}`))
-    })
+        server.listen(PORT, err => {
+            if (err) return reject(err);
+            let greet = `🚀 Server ready at http://localhost:${PORT}${apollo.graphqlPath}\n🚀 Subscriptions ready at ws://localhost:${PORT}${apollo.subscriptionsPath}`;
+            if (TESTING) console.log(greet);
+            resolve(greet);
+        })
+    });
 }
 
+module.exports = {
+    startServer,
+    stopServer
+};
 
-main().then(console.log).catch(console.error);
+!TESTING && startServer().then(console.log).catch(console.error);
