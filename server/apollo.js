@@ -34,7 +34,7 @@ function resolverGenerator(DB) {
                 data.push(newTask);
                 notify(TASKS_CHANGED, getStats(data));
 
-                return data.length;
+                return newTask.id;
             },
             remove: (root, {id}) => {
                 let {data = []} = DB,
@@ -116,7 +116,7 @@ const typeDefs = gql`
 
     type Mutation {
         hello(name: String): String!,
-        add(description: String!):Int!,
+        add(description: String!):String!,
         remove(id: String!):Task,
         edit(id: String!, description: String!): Task
         update(id: String!, status: String!): Task,
