@@ -13,7 +13,10 @@ class FilterButton extends Component {
     };
 
     static defaultProps = {
-        active: false
+        active: false,
+        filter: '',
+        stat: 0,
+        title: ''
     };
 
     constructor(props) {
@@ -27,10 +30,10 @@ class FilterButton extends Component {
             filter, stat
         } = this.props;
         return (
-            <button title={title} className={`filter ${(filter || '').toLowerCase()}`}
+            <button title={title} className={`filter ${filter.toLowerCase()}`}
                     onClick={this.onClick} data-active={active} disabled={active}>
                 {title}
-                {stat && <span className="badge">{stat > 99 ? '∞' : stat}</span>}
+                <span className="badge">{stat > 99 ? '∞' : stat}</span>
             </button>
         )
     }

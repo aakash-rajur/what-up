@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import CANCEL_ICON from '../../assets/close.svg';
 import {TASK_COMPLETED, TASK_CREATED, TASK_TITLE} from "../../utils/constants";
 import {EDIT_TASK, REMOVE_TASK, UPDATE_TASK} from "../../utils/apollo";
-import './task.css';
 import Input from "../Input/Input";
 import {getFormattedTimestamp, renderMutations} from "../../utils/library";
+import './task.css';
 
 class Task extends Component {
     static propTypes = {

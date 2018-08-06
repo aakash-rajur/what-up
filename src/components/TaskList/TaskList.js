@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import Error from "../Error/Error";
 import Loading from "../Loading/Loading";
 import {TASK_ALL} from "../../utils/constants";
-import './task-list.css';
 import Task from "../Task/Task";
+import './task-list.css';
 
 class TaskList extends Component {
     static propTypes = {
