@@ -5,85 +5,85 @@ const {TASK_CANCELLED, TASK_CREATED, createPublisher, getTimestamp, findTask, ge
 const notify = createPublisher(notifier);
 
 function resolverGenerator(DB) {
-    return {
-        Query: {
-            hello: (root, {name}) => {
-                return `hello ${name || 'world'}`;
-            },
-            tasks: (root, {filter, timestamp}) => {
-                timestamp && console.log(`requesting data for ${timestamp}`);
-                let {data = []} = DB, processed = data;
-                if (filter && filter !== 'ALL')
-                    processed = data.filter(({status}) =>
-                        status === filter);
-                return processed.sort(({created: t1}, {created: t2}) => t2 - t1);
-            }
-        },
-        Mutation: {
-            hello: (root, {name}) => `not hello ${name || 'world'}`,
-            add: (root, {description}) => {
-                let {data = []} = DB,
-                    timestamp = getTimestamp(),
-                    newTask = {
-                        id: timestamp,
-                        description,
-                        status: TASK_CREATED,
-                        created: timestamp,
-                        updated: timestamp
-                    };
-                data.push(newTask);
-                notify(TASKS_CHANGED, getStats(data));
-
-                return newTask.id;
-            },
-            remove: (root, {id}) => {
-                let {data = []} = DB,
-                    task = findTask(data, id);
-                task.status = TASK_CANCELLED;
-                task.updated = getTimestamp();
-                notify(TASKS_CHANGED, getStats(data));
-
-                return task;
-            },
-            edit: (root, {id, description}) => {
-                let {data = []} = DB,
-                    task = findTask(data, id);
-                if (task.description === description) return task;
-                task.description = description;
-                task.updated = getTimestamp();
-                notify(TASKS_CHANGED, getStats(data));
-
-                return task;
-            },
-            update: (root, {id, status}) => {
-                let {data = []} = DB,
-                    task = findTask(data, id);
-                if (task.status === status) return task;
-                task.status = status;
-                task.updated = getTimestamp();
-                notify(TASKS_CHANGED, getStats(data));
-
-                return task;
-            },
-            updateAll: (root, {status}) => {
-                let {data = []} = DB,
-                    updated = getTimestamp();
-                data.forEach(task => {
-                    task.status = status;
-                    task.updated = updated;
-
-                });
-                notify(TASKS_CHANGED, getStats(data));
-
-                return data.length;
-            }
-        },
-        Subscription: {
-            tasksChanged: {
-                subscribe: () => notifier.asyncIterator([TASKS_CHANGED]),
-            }
-        },
-    }
+	return {
+		Query: {
+			hello: (root, {name}) => {
+				return `hello ${name || 'world'}`;
+			},
+			tasks: (root, {filter, timestamp}) => {
+				timestamp && console.log(`requesting data for ${timestamp}`);
+				let {data = []} = DB, processed = data;
+				if (filter && filter !== 'ALL')
+					processed = data.filter(({status}) =>
+						status === filter);
+				return processed.sort(({created: t1}, {created: t2}) => t2 - t1);
+			}
+		},
+		Mutation: {
+			hello: (root, {name}) => `not hello ${name || 'world'}`,
+			add: (root, {description}) => {
+				let {data = []} = DB,
+					timestamp = getTimestamp(),
+					newTask = {
+						id: timestamp,
+						description,
+						status: TASK_CREATED,
+						created: timestamp,
+						updated: timestamp
+					};
+				data.push(newTask);
+				notify(TASKS_CHANGED, getStats(data));
+				
+				return newTask.id;
+			},
+			remove: (root, {id}) => {
+				let {data = []} = DB,
+					task = findTask(data, id);
+				task.status = TASK_CANCELLED;
+				task.updated = getTimestamp();
+				notify(TASKS_CHANGED, getStats(data));
+				
+				return task;
+			},
+			edit: (root, {id, description}) => {
+				let {data = []} = DB,
+					task = findTask(data, id);
+				if (task.description === description) return task;
+				task.description = description;
+				task.updated = getTimestamp();
+				notify(TASKS_CHANGED, getStats(data));
+				
+				return task;
+			},
+			update: (root, {id, status}) => {
+				let {data = []} = DB,
+					task = findTask(data, id);
+				if (task.status === status) return task;
+				task.status = status;
+				task.updated = getTimestamp();
+				notify(TASKS_CHANGED, getStats(data));
+				
+				return task;
+			},
+			updateAll: (root, {status}) => {
+				let {data = []} = DB,
+					updated = getTimestamp();
+				data.forEach(task => {
+					task.status = status;
+					task.updated = updated;
+					
+				});
+				notify(TASKS_CHANGED, getStats(data));
+				
+				return data.length;
+			}
+		},
+		Subscription: {
+			tasksChanged: {
+				subscribe: () => notifier.asyncIterator([TASKS_CHANGED]),
+			}
+		},
+	}
 }
 
 const typeDefs = gql`
@@ -129,19 +129,19 @@ const typeDefs = gql`
 `;
 
 function getApolloServer(DB = {}) {
-    return new ApolloServer({
-        typeDefs,
-        resolvers: resolverGenerator(DB),
-        subscriptions: {
-            onConnect: (connectionParams, webSocket) => {
-                let {remoteAddress, remotePort} = webSocket._socket;
-                console.log(`websocket connected to ${remoteAddress}:${remotePort}`);
-                setTimeout(notify, 10, TASKS_CHANGED, getStats(DB.data))
-            }
-        }
-    });
+	return new ApolloServer({
+		typeDefs,
+		resolvers: resolverGenerator(DB),
+		subscriptions: {
+			onConnect: (connectionParams, webSocket) => {
+				let {remoteAddress, remotePort} = webSocket._socket;
+				console.log(`websocket connected to ${remoteAddress}:${remotePort}`);
+				setTimeout(notify, 10, TASKS_CHANGED, getStats(DB.data))
+			}
+		}
+	});
 }
 
 module.exports = {
-    getApolloServer
+	getApolloServer
 };

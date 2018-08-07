@@ -7,7 +7,7 @@ import {WebSocketLink} from 'apollo-link-ws';
 import {getMainDefinition} from "apollo-utilities";
 import gql from 'graphql-tag';
 import {compose, graphql} from 'react-apollo';
-import {API_URL, TASK_COMPLETED, TASK_CREATED, WS_URL} from "./constants";
+import {API_URL, TASK_COMPLETED, TASK_CREATED, WS_URL} from "./constants";L̥
 
 const wsLink = new WebSocketLink({
 	uri: WS_URL,

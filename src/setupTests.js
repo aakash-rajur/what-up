@@ -1,9 +1,9 @@
-import {configure, shallow, mount, render} from 'enzyme';
+import {configure, mount, render, shallow} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
+import 'jest-enzyme';
+import fetch from 'node-fetch';
 import {stub} from 'sinon';
 import WebSocket from 'ws';
-import fetch from 'node-fetch';
-import 'jest-enzyme';
 
 configure({adapter: new Adapter()});
 
