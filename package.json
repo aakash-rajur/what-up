@@ -20,6 +20,7 @@
     "server": "nodemon -w server -w server/index.js server",
     "server:run": "NODE_ENV=production node server",
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
+    "server:test:window":"set NODE_ENV=test&&mocha server/test/**.js -c",
     "dev": "npm run server & npm run app"
   },
   "devDependencies": {

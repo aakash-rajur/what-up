@@ -7,7 +7,7 @@ import {getFormattedTimestamp} from "../../utils/library";
 import Input from "../Input/Input";
 import './task.css';
 
-class Task extends Component {
+export class Task extends Component {
 	static propTypes = {
 		description: PropTypes.string,
 		status: PropTypes.string,
