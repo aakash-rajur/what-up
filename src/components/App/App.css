@@ -75,6 +75,7 @@
     line-height: 2em;
     font-weight: 100;
     color: lightgray;
+    margin-top: 64px;
 }
 
 #root .documentation em {
