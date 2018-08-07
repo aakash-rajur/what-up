@@ -7,7 +7,8 @@ import {ApolloLink} from 'apollo-link';
 import {WebSocketLink} from 'apollo-link-ws';
 import {split} from 'apollo-link';
 import {getMainDefinition} from "apollo-utilities";
-import {API_URL, WS_URL} from "./constants";
+import {compose, graphql} from 'react-apollo';
+import {API_URL, TASK_COMPLETED, TASK_CREATED, WS_URL} from "./constants";
 
 const wsLink = new WebSocketLink({
     uri: WS_URL,
@@ -53,7 +54,7 @@ export const FETCH_TASKS = gql`
     }
 `;
 
-export const REMOVE_TASK = gql`
+export const CANCEL_TASK = gql`
     mutation removeTask($id: String!) {
         remove(id: $id){
             description,
@@ -81,9 +82,9 @@ export const UPDATE_TASK = gql`
 `;
 
 export const UPDATE_ALL_TASKS = gql`
-  mutation updateAll($status: String!){
-      updateAll(status: $status)
-  } 
+    mutation updateAll($status: String!){
+        updateAll(status: $status)
+    }
 `;
 
 export const ADD_TASK = gql`
@@ -103,3 +104,32 @@ export const TASKS_UPDATED = gql`
         }
     }
 `;
+
+export const MutableTask = compose(...(
+        [{
+            mutation: CANCEL_TASK,
+            prefix: 'cancel',
+            args: ({id}) => ({id})
+        }, {
+            mutation: EDIT_TASK,
+            prefix: 'edit',
+            args: () => ({})
+        }, {
+            mutation: UPDATE_TASK,
+            prefix: 'update',
+            args: ({id, status}) => ({
+                id, status: status === TASK_CREATED ?
+                    TASK_COMPLETED : TASK_CREATED
+            })
+        }].map(({mutation, prefix, args}) => graphql(mutation, {
+                props: (trigger, result) => {
+                    return ({
+                        [`${prefix}Task`]: trigger.mutate,
+                        [`${prefix}Result`]: result ? result.data : null
+                    })
+                },
+                options: props => ({variables: args(props)})
+            })
+        )
+    )
+);

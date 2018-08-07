@@ -34,4 +34,8 @@ describe('Input component', () => {
         expect(props.onValueReturn.callCount).toBe(1);
         expect(props.onValueReturn.calledWithExactly(props.value)).toBe(true)
     });
+
+    it('match snapshot', () => {
+        expect(component).toMatchSnapshot();
+    });
 });

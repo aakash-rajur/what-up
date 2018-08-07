@@ -18,7 +18,7 @@
     "app:test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "server": "nodemon -w server -w server/index.js server",
-    "server:run": "NODE_ENV=production server",
+    "server:run": "NODE_ENV=production node server",
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
     "dev": "npm run server & npm run app"
   },
@@ -37,6 +37,7 @@
     "enzyme-to-json": "^3.3.4",
     "graphql-tag": "^2.9.2",
     "jest-enzyme": "^6.0.2",
+    "node-fetch": "^2.2.0",
     "prop-types": "^15.6.2",
     "react": "^16.4.2",
     "react-apollo": "^2.1.9",
