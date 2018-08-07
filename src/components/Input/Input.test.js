@@ -13,7 +13,7 @@ describe('Input component', () => {
 			.toBe(true);
 	});
 	
-	it('dom integrity', () => {
+	it('props integrity', () => {
 		let domProps = {...props};
 		delete domProps.onValueReturn;
 		Object.entries(domProps)
