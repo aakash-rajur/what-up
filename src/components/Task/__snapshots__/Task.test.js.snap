@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Task component editable description match snapshot 1`] = `
+<Task
+  cancelTask={[Function]}
+  created="1533233094860"
+  description="task1"
+  editTask={[Function]}
+  id="1533233094860"
+  status="COMPLETED"
+  updateTask={[Function]}
+  updated="1533233094860"
+>
+  <div
+    className="app-width task"
+    data-status="COMPLETED"
+  >
+    <div
+      className="icon status"
+      key="status"
+      onClick={[Function]}
+      title="Set Active"
+    >
+       
+    </div>
+    <Input
+      autoFocus={true}
+      className="editable"
+      key="description"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onValueReturn={[Function]}
+      value="task1"
+    >
+      <input
+        autoFocus={true}
+        className="editable"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onKeyUp={[Function]}
+        value="task1"
+      />
+    </Input>
+    <img
+      alt="cancel-task"
+      className="icon cancel"
+      key="remove"
+      onClick={[Function]}
+      src="close.svg"
+      title="Set Cancel"
+    />
+    <i
+      className="updated"
+    >
+      11: 34 A.M, Thu 2 Aug
+    </i>
+  </div>
+</Task>
+`;
+
+exports[`Task component non editable description match snapshot 1`] = `
+<div
+  className="app-width task"
+  data-status="COMPLETED"
+>
+  <div
+    className="icon status"
+    key="status"
+    onClick={[Function]}
+    title="Set Active"
+  >
+     
+  </div>
+  <div
+    className="description"
+    key="description"
+    onDoubleClick={[Function]}
+    title="Task description
+  Double click to edit"
+  >
+    task1
+  </div>
+  <img
+    alt="cancel-task"
+    className="icon cancel"
+    key="remove"
+    onClick={[Function]}
+    src="close.svg"
+    title="Set Cancel"
+  />
+  <i
+    className="updated"
+  >
+    11: 34 A.M, Thu 2 Aug
+  </i>
+</div>
+`;

@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Input component match snapshot 1`] = `
+<input
+  autoFocus={true}
+  className="task-input"
+  onKeyUp={[Function]}
+  placeholder="lorem ipsum"
+  tabIndex={1}
+  type="text"
+  value="hello world"
+/>
+`;
