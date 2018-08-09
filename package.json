@@ -20,7 +20,7 @@
     "server": "nodemon -w server -w server/index.js server",
     "server:run": "NODE_ENV=production node server",
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
-    "server:test:window":"set NODE_ENV=test&&mocha server/test/**.js -c",
+    "server:test:window": "set NODE_ENV=test&&mocha server/test/**.js -c",
     "dev": "npm run server & npm run app"
   },
   "devDependencies": {
@@ -38,6 +38,7 @@
     "enzyme-to-json": "^3.3.4",
     "graphql-tag": "^2.9.2",
     "jest-enzyme": "^6.0.2",
+    "jsdom": "^11.12.0",
     "node-fetch": "^2.2.0",
     "prop-types": "^15.6.2",
     "react": "^16.4.2",
