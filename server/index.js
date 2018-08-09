@@ -20,7 +20,7 @@ function stopServer() {
 
 function startServer() {
 	return new Promise((resolve, reject) => {
-		let DB = {data: require('../mock/tasks')},
+		let DB = {data: [...require('../mock/tasks')]},
 			apollo = getApolloServer(DB),
 			app = express();
 		
@@ -36,6 +36,11 @@ function startServer() {
 		apollo.applyMiddleware({app});
 		
 		app.get('/data', (req, res) => res.send(DB));
+		
+		app.get('/reset', (req, res) => {
+			DB.data = [...require('../mock/tasks')];
+			res.send(DB);
+		});
 		
 		server = http.createServer(app);
 		apollo.installSubscriptionHandlers(server);
