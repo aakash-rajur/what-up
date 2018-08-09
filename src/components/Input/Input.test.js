@@ -23,12 +23,12 @@ describe('Input component', () => {
 			);
 	});
 	
-	it('should not fire onValueReturn', () => {
+	it('should not fire onValueReturn if keyCode is not 13', () => {
 		component.simulate('keyup', {keyCode: 10, target: {value: props.value}});
 		expect(props.onValueReturn.called).toBe(false);
 	});
 	
-	it('should fire onValueReturn', () => {
+	it('should fire onValueReturn if keyCode is 13', () => {
 		component.simulate('keyup', {keyCode: 13, target: {value: props.value}});
 		expect(props.onValueReturn.called).toBe(true);
 		expect(props.onValueReturn.callCount).toBe(1);
