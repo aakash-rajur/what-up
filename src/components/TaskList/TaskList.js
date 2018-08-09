@@ -1,18 +1,18 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
+import {withQueryTasks} from "../../utils/apollo";
 import {TASK_ALL} from "../../utils/constants";
 import Error from "../Error/Error";
 import Loading from "../Loading/Loading";
 import Task from "../Task/Task";
 import './task-list.css';
 
-class TaskList extends Component {
+export class TaskList extends Component {
 	static propTypes = {
 		tasks: PropTypes.array,
 		loading: PropTypes.bool,
 		error: PropTypes.any,
-		filter: PropTypes.string,
-		onTaskListChange: PropTypes.func
+		filter: PropTypes.string
 	};
 	
 	state = {
@@ -24,11 +24,8 @@ class TaskList extends Component {
 		if (this.props.loading !== prevProps.loading) {
 			this.setState({loading: this.props.loading && !this.state.tasks.length});
 		}
-		if (this.props.tasks !== prevProps.tasks && this.props.tasks) {
+		if (this.props.tasks !== prevProps.tasks && this.props.tasks)
 			this.setState({tasks: this.props.tasks});
-			let {onTaskListChange} = this.props;
-			onTaskListChange && onTaskListChange(this.props.tasks);
-		}
 	}
 	
 	render() {
@@ -52,4 +49,4 @@ class TaskList extends Component {
 	}
 }
 
-export default TaskList;
+export default withQueryTasks(TaskList);

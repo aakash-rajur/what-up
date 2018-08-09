@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import CANCEL_ICON from '../../assets/close.svg';
-import {MutableTask} from "../../utils/apollo";
+import {withTaskMutations} from "../../utils/apollo";
 import {TASK_CREATED, TASK_TITLE} from "../../utils/constants";
 import {getFormattedTimestamp} from "../../utils/library";
 import Input from "../Input/Input";
@@ -23,6 +23,11 @@ export class Task extends Component {
 			description: props.description,
 			editable: false
 		};
+	}
+	
+	componentDidUpdate(props) {
+		if (this.props.description !== props.description)
+			this.setState({description: this.props.description});
 	}
 	
 	render() {
@@ -83,4 +88,4 @@ export class Task extends Component {
 }
 
 
-export default MutableTask(Task);
+export default withTaskMutations(Task);

@@ -7,7 +7,7 @@ import {WebSocketLink} from 'apollo-link-ws';
 import {getMainDefinition} from "apollo-utilities";
 import gql from 'graphql-tag';
 import {compose, graphql} from 'react-apollo';
-import {API_URL, TASK_COMPLETED, TASK_CREATED, WS_URL} from "./constants";
+import {API_URL, TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED, WS_URL} from "./constants";
 
 const wsLink = new WebSocketLink({
 	uri: WS_URL,
@@ -104,7 +104,7 @@ export const TASKS_UPDATED = gql`
     }
 `;
 
-export const MutableTask = compose(...(
+export const withTaskMutations = compose(...(
 		[{
 			mutation: CANCEL_TASK,
 			prefix: 'cancel',
@@ -133,3 +133,37 @@ export const MutableTask = compose(...(
 		)
 	)
 );
+
+export const withQueryTasks = graphql(FETCH_TASKS, {
+		props: ({data = {}}, ...rest) => ({...data, ...rest})
+	}
+);
+
+export const withNewTaskAddition = graphql(ADD_TASK, {
+	props: ({mutate}, result) => ({addNewTask: mutate, result}),
+	options: ({newTask, onDone}) => ({
+		variables: {description: newTask},
+		onCompleted: onDone,
+		onError: onDone
+	})
+});
+
+export const withUpdateAll = graphql(UPDATE_ALL_TASKS, {
+	props: ({mutate, result}) => ({updateAll: mutate, result}),
+	options: ({nextStatus}) => ({variables: {status: nextStatus}})
+});
+
+const defaultTaskUpdated = {
+	tasksChanged: {
+		timestamp: "0",
+		[TASK_ALL]: 0,
+		[TASK_CANCELLED]: 0,
+		[TASK_COMPLETED]: 0,
+		[TASK_CREATED]: 0
+	}
+};
+
+export const withTasksUpdatedSubscription = graphql(TASKS_UPDATED, {
+	props: ({data: {tasksChanged} = defaultTaskUpdated}) => ({...tasksChanged}),
+	options: () => ({shouldResubscribe: true})
+});
