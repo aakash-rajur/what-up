@@ -23,7 +23,6 @@ class App extends Component {
 		};
 	}
 	
-	
 	render() {
 		let {filter, newTask} = this.state,
 			{timestamp} = this.props;
