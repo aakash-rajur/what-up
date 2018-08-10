@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UpdateAll component match snapshot 1`] = `
+<img
+  alt="complete-all"
+  className="lorem"
+  onClick={[Function]}
+  src="chevron-down.svg"
+  title="Update All"
+/>
+`;
