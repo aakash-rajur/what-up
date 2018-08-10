@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Footer component match snapshot 1`] = `
+<div
+  className="documentation"
+>
+  <em>
+    double-click to edit tasks
+  </em>
+  <br />
+  Created by 
+  <a
+    className="link"
+    href="https://github.com/aakashRajur"
+  >
+    aakashRajur
+  </a>
+  <br />
+  Inspired by 
+  <a
+    className="link"
+    href="http://todomvc.com/examples/react/"
+  >
+    React • TodoMVC
+  </a>
+  <br />
+</div>
+`;
