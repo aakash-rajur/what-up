@@ -1,0 +1,68 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App component match snapshot with non-empty list 1`] = `
+<Fragment>
+  <h1
+    className="accent-font-color title"
+  >
+    What Up!
+  </h1>
+  <span
+    className="new-task-container"
+  >
+    <Apollo(NewTask)
+      autoFocus={true}
+      className="app-width new-task"
+      newTask=""
+      onChange={[Function]}
+      onDone={[Function]}
+      placeholder="new task?"
+      type="text"
+    />
+    <Apollo(UpdateAll)
+      className="icon check-all"
+      nextStatus="CREATED"
+    />
+    <div
+      className="filter-container"
+    >
+      <FilterButton
+        active={true}
+        filter="ALL"
+        key="0"
+        onClick={[Function]}
+        stat={0}
+        title="All"
+      />
+      <FilterButton
+        active={false}
+        filter="CREATED"
+        key="1"
+        onClick={[Function]}
+        stat={0}
+        title="Active"
+      />
+      <FilterButton
+        active={false}
+        filter="COMPLETED"
+        key="2"
+        onClick={[Function]}
+        stat={0}
+        title="Completed"
+      />
+      <FilterButton
+        active={false}
+        filter="CANCELLED"
+        key="3"
+        onClick={[Function]}
+        stat={0}
+        title="Cancelled"
+      />
+    </div>
+  </span>
+  <Apollo(TaskList)
+    filter="ALL"
+  />
+  <Footer />
+</Fragment>
+`;
