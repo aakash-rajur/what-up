@@ -14,20 +14,20 @@ export class TaskList extends Component {
 		error: PropTypes.any,
 		filter: PropTypes.string
 	};
-	
+
 	state = {
 		tasks: [],
 		loading: true
 	};
-	
+
 	componentDidUpdate(prevProps) {
 		if (this.props.loading !== prevProps.loading) {
 			this.setState({loading: this.props.loading && !this.state.tasks.length});
 		}
 		if (this.props.tasks !== prevProps.tasks && this.props.tasks)
-			this.setState({tasks: this.props.tasks});
+			this.setState({tasks: this.props.tasks, loading: false});
 	}
-	
+
 	render() {
 		let {error, filter} = this.props, {
 			loading, tasks
