@@ -10,7 +10,7 @@ describe('Loading component', () => {
 			.toBe(true);
 	});
 	
-	it('check props and classNames', () => {
+	it('check props', () => {
 		expect(component.find('div').hasClass('loading')).toBe(true);
 		expect(component.find('div').hasClass(className)).toBe(true);
 	});

@@ -1,6 +1,9 @@
 import React from 'react';
 import tasks from '../../../mock/tasks'
 import {Task} from './Task';
+import {TASK_TITLE} from "../../utils/constants";
+import {getFormattedTimestamp} from "../../utils/library";
+import CANCEL_ICON from "../../assets/close.svg";
 
 describe('Task component non editable description', () => {
 	let updateTask = stub(),
@@ -10,7 +13,7 @@ describe('Task component non editable description', () => {
 			...tasks[0],
 			updateTask,
 			cancelTask,
-			editTask
+			editTask,
 		}, component = shallow(<Task {...props}/>);
 	
 	it('should render', () => {
@@ -18,16 +21,38 @@ describe('Task component non editable description', () => {
 			.toBe(true);
 	});
 	
-	it('dom integrity', () => {
-		[
-			'div.icon.status',
-			'div.description',
-			'img.icon.cancel'
-		].forEach(child =>
-			expect(component.find(child).exists())
-				.toBe(true)
-		);
-	});
+	it('dom integrity', () => [{
+			selector: 'div.icon.status',
+			props: {
+				title: 'Set Active',
+				onClick: updateTask
+			},
+			text: '\u00a0'
+		}, {
+			selector: 'div.description',
+			props: {
+				title: TASK_TITLE,
+			},
+			text: tasks[0].description
+		}, {
+			selector: 'img.icon.cancel',
+			props: {
+				title: 'Set Cancel',
+				alt: 'cancel-task',
+				src: CANCEL_ICON,
+				onClick: cancelTask
+			}
+		}, {
+			selector: 'i.updated',
+			text: getFormattedTimestamp(tasks[0].updated)
+		}].forEach(({selector, props, text}) => {
+			let el = component.find(selector);
+			props && Object.entries(([key, value]) =>
+				expect(el.prop(key)).toBe(value)
+			);
+			text && expect(el.text()).toBe(text);
+		})
+	);
 	
 	it('state integrity', () => [{
 			prop: 'description',
@@ -72,7 +97,7 @@ describe('Task component editable description', () => {
 			...tasks[0],
 			updateTask,
 			cancelTask,
-			editTask
+			editTask,
 		}, component = mount(<Task {...props}/>);
 	
 	it('should render', () =>
