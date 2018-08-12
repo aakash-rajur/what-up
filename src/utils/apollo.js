@@ -40,7 +40,6 @@ export default new ApolloClient({
 	cache: new InMemoryCache()
 });
 
-
 export const FETCH_TASKS = gql`
     query fetchTasks($filter: String!, $timestamp: String){
         tasks(filter: $filter, timestamp: $timestamp){
@@ -104,40 +103,37 @@ export const TASKS_UPDATED = gql`
     }
 `;
 
-export const withTaskMutations = compose(...(
-		[{
-			mutation: CANCEL_TASK,
-			prefix: 'cancel',
-			args: ({id}) => ({id})
-		}, {
-			mutation: EDIT_TASK,
-			prefix: 'edit',
-			args: () => ({}),
-			dynamic: true
-		}, {
-			mutation: UPDATE_TASK,
-			prefix: 'update',
-			args: ({id, status}) => ({
-				id, status: status === TASK_CREATED ?
-					TASK_COMPLETED : TASK_CREATED
+export const withTaskMutations = compose(...
+	[{
+		mutation: CANCEL_TASK,
+		prefix: 'cancel',
+		args: ({id}) => ({id})
+	}, {
+		mutation: EDIT_TASK,
+		prefix: 'edit',
+		args: () => ({}),
+		dynamic: true
+	}, {
+		mutation: UPDATE_TASK,
+		prefix: 'update',
+		args: ({id, status}) => ({
+			id, status: status === TASK_CREATED ?
+				TASK_COMPLETED : TASK_CREATED
+		})
+	}].map(({mutation, prefix, args, dynamic}) => graphql(mutation, {
+		props: ({mutate}, result) => {
+			return ({
+				[`${prefix}Task`]: dynamic ? (props) => mutate({variables: {...props}}) : mutate,
+				[`${prefix}Result`]: result ? result.data : null
 			})
-		}].map(({mutation, prefix, args, dynamic}) => graphql(mutation, {
-				props: ({mutate}, result) => {
-					return ({
-						[`${prefix}Task`]: dynamic ? (props) => mutate({variables: {...props}}) : mutate,
-						[`${prefix}Result`]: result ? result.data : null
-					})
-				},
-				options: props => ({variables: args(props)})
-			})
-		)
-	)
+		},
+		options: props => ({variables: args(props)})
+	}))
 );
 
 export const withQueryTasks = graphql(FETCH_TASKS, {
-		props: ({data = {}}, ...rest) => ({...data, ...rest})
-	}
-);
+	props: ({data = {}}, ...rest) => ({...data, ...rest})
+});
 
 export const withNewTaskAddition = graphql(ADD_TASK, {
 	props: ({mutate}, result) => ({addNewTask: mutate, result}),
