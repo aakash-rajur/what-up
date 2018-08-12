@@ -1,4 +1,5 @@
 import React from 'react';
+import {TASK_ALL} from "../../utils/constants";
 import FilterButton from './FilterButton';
 
 describe('FilterButton with default props', () => {
@@ -10,32 +11,28 @@ describe('FilterButton with default props', () => {
 			.toBe(true);
 	});
 	
-	it('dom tree integrity', () => {
-		[{
-			prop: 'title',
-			value: ''
-		}, {
-			prop: 'data-active',
-			value: active
-		}, {
-			prop: 'disabled',
-			value: active
-		}].forEach(({prop, value}) =>
-			expect(component.prop(prop))
-				.toBe(value));
-		
-		let span = component.childAt(0);
-		expect(span.type()).toBe('span');
-		expect(span.prop('className')).toBe('badge');
-		expect(span.text()).toBe('0');
-	});
+	it('dom tree integrity', checkDOM(component, [{
+		selector: 'button.filter',
+		props: {
+			title: '',
+			'data-active': "false",
+			disabled: false
+		},
+		children: [{
+			selector: 'span.badge',
+			length: 1
+		}]
+	}, {
+		selector: 'span.badge',
+		text: '0'
+	}]));
 	
-	it('match snapshot with default props', () => expect(component).toMatchSnapshot());
+	matchSnapshot(component);
 });
 
 describe('FilterButton with props', () => {
 	let props = {
-		active: true, title: 'All', stat: 7,
+		active: true, title: TASK_ALL, stat: 7,
 		filter: 'filter1', onClick: stub(),
 	}, component = shallow(<FilterButton {...props}/>);
 	
@@ -44,33 +41,29 @@ describe('FilterButton with props', () => {
 			.toBe(true);
 	});
 	
-	it('dom tree integrity', () => {
-		[{
-			prop: 'title',
-			value: props.title
-		}, {
-			prop: 'data-active',
-			value: props.active
-		}, {
-			prop: 'disabled',
-			value: props.active
-		}].forEach(({prop, value}) =>
-			expect(component.prop(prop))
-				.toBe(value));
-		
-		expect(component.childAt(0).text()).toBe(props.title);
-		
-		let span = component.childAt(1);
-		expect(span.type()).toBe('span');
-		expect(span.prop('className')).toBe('badge');
-		expect(span.text()).toBe(props.stat.toString());
-	});
+	it('dom tree integrity', checkDOM(component, [{
+		selector: 'button.filter',
+		props: {
+			title: props.title,
+			className: 'filter filter1',
+			'data-active': props.active,
+			disabled: props.active
+		},
+		children: [{
+			selector: 'span.badge',
+			length: 1
+		}]
+	}, {
+		selector: 'span.badge',
+		text: props.stat.toString()
+	}]));
 	
-	it('fires onClick', () => {
-		component.simulate('click');
-		expect(props.onClick.callCount).toBe(1);
-		expect(props.onClick.calledWithExactly(props.filter)).toBe(true);
-	});
+	it('fires onClick', checkEvents(component, [{
+		selector: 'button.filter',
+		event: 'click',
+		callback: props.onClick,
+		cArgs: [props.filter]
+	}]));
 	
-	it('match snapshot with non-default props', () => expect(component).toMatchSnapshot());
+	matchSnapshot(component);
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import ERROR_ICON from '../../assets/alert.svg';
 import Error from './Error'
 
-describe('Error component with default props', () => {
+describe('Error component without error text', () => {
 	let error = 'Something Went Wrong',
 		component = shallow(<Error/>);
 	it('should render', () => {
@@ -10,42 +10,60 @@ describe('Error component with default props', () => {
 			.toBe(true);
 	});
 	
-	it('dom tree integrity', () => {
-		['img', 'pre'].forEach((tag, i) =>
-			expect(component.childAt(i).type())
-				.toBe(tag))
-	});
+	it('dom tree integrity', checkDOM(component, [{
+		selector: 'div.error-container',
+		props: {
+			className: 'error-container '
+		},
+		children: [{
+			selector: 'img',
+			length: 1
+		}, {
+			selector: 'pre',
+			length: 1
+		}]
+	}, {
+		selector: 'img',
+		props: {
+			src: ERROR_ICON,
+			alt: error
+		}
+	}, {
+		selector: 'pre',
+		text: error
+	}]));
 	
-	it('img props', () => {
-		let img = component.find('img');
-		expect(img.prop('src')).toBe(ERROR_ICON);
-		expect(img.prop('alt')).toBe(error);
-	});
-	
-	it('pre content', () => {
-		let pre = component.find('pre');
-		expect(pre.text()).toBe(error);
-	});
-	
-	it('match snapshot with default text', () => expect(component).toMatchSnapshot());
+	matchSnapshot(component)
 });
 
-describe('Error component with non-default props', () => {
+describe('Error component with error text', () => {
 	let error = 'hello world',
 		component = shallow(<Error text={error}/>);
 	
 	component.setProps({text: error});
 	
-	it('img props with non-default text', () => {
-		let img = component.find('img');
-		expect(img.prop('src')).toBe(ERROR_ICON);
-		expect(img.prop('alt')).toBe(error);
-	});
+	it('dom tree integrity', checkDOM(component, [{
+		selector: 'div.error-container',
+		props: {
+			className: 'error-container '
+		},
+		children: [{
+			selector: 'img',
+			length: 1
+		}, {
+			selector: 'pre',
+			length: 1
+		}]
+	}, {
+		selector: 'img',
+		props: {
+			src: ERROR_ICON,
+			alt: error
+		}
+	}, {
+		selector: 'pre',
+		text: error
+	}]));
 	
-	it('pre content with non-default text', () => {
-		let pre = component.find('pre');
-		expect(pre.text()).toBe(error);
-	});
-	
-	it('match snapshot with non-default text', () => expect(component).toMatchSnapshot());
+	matchSnapshot(component);
 });

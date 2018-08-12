@@ -5,7 +5,7 @@ import {withUpdateAll} from "../../utils/apollo";
 
 export function UpdateAll({className, updateAll}) {
 	return (
-		<img src={CHEVRON_DOWN_ICON} alt="complete-all"
+		<img src={CHEVRON_DOWN_ICON} alt="toggle-all"
 		     className={className} onClick={updateAll}
 		     title='Update All'/>
 	);

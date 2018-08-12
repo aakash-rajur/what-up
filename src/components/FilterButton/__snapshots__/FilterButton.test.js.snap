@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FilterButton with default props match snapshot with default props 1`] = `
+exports[`FilterButton with default props match snapshot 1`] = `
 <button
   className="filter "
   data-active={false}
@@ -16,15 +16,15 @@ exports[`FilterButton with default props match snapshot with default props 1`] =
 </button>
 `;
 
-exports[`FilterButton with props match snapshot with non-default props 1`] = `
+exports[`FilterButton with props match snapshot 1`] = `
 <button
   className="filter filter1"
   data-active={true}
   disabled={true}
   onClick={[Function]}
-  title="All"
+  title="ALL"
 >
-  All
+  ALL
   <span
     className="badge"
   >

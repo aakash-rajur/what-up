@@ -1,9 +1,10 @@
 import React from 'react';
 import tasks from '../../../mock/tasks'
-import {Task} from './Task';
+import CANCEL_ICON from "../../assets/close.svg";
 import {TASK_TITLE} from "../../utils/constants";
 import {getFormattedTimestamp} from "../../utils/library";
-import CANCEL_ICON from "../../assets/close.svg";
+import Input from "../Input/Input";
+import {Task} from './Task';
 
 describe('Task component non editable description', () => {
 	let updateTask = stub(),
@@ -21,38 +22,46 @@ describe('Task component non editable description', () => {
 			.toBe(true);
 	});
 	
-	it('dom integrity', () => [{
-			selector: 'div.icon.status',
-			props: {
-				title: 'Set Active',
-				onClick: updateTask
-			},
-			text: '\u00a0'
+	it('dom integrity', checkDOM(component, [{
+		selector: 'div.app-width.task',
+		props: {
+			'data-status': tasks[0].status
+		},
+		children: [{
+			selector: 'div',
+			length: 3
 		}, {
-			selector: 'div.description',
-			props: {
-				title: TASK_TITLE,
-			},
-			text: tasks[0].description
+			selector: 'img',
+			length: 1
 		}, {
-			selector: 'img.icon.cancel',
-			props: {
-				title: 'Set Cancel',
-				alt: 'cancel-task',
-				src: CANCEL_ICON,
-				onClick: cancelTask
-			}
-		}, {
-			selector: 'i.updated',
-			text: getFormattedTimestamp(tasks[0].updated)
-		}].forEach(({selector, props, text}) => {
-			let el = component.find(selector);
-			props && Object.entries(([key, value]) =>
-				expect(el.prop(key)).toBe(value)
-			);
-			text && expect(el.text()).toBe(text);
-		})
-	);
+			selector: 'i',
+			length: 1
+		}]
+	}, {
+		selector: 'div.icon.status',
+		props: {
+			title: 'Set Active',
+			onClick: updateTask
+		},
+		text: '\u00a0'
+	}, {
+		selector: 'div.description',
+		props: {
+			title: TASK_TITLE
+		},
+		text: tasks[0].description
+	}, {
+		selector: 'img.icon.cancel',
+		props: {
+			src: CANCEL_ICON,
+			alt: 'cancel-task',
+			title: 'Set Cancel',
+			onClick: cancelTask
+		}
+	}, {
+		selector: 'i.updated',
+		text: getFormattedTimestamp(tasks[0].updated)
+	}]));
 	
 	it('state integrity', () => [{
 			prop: 'description',
@@ -84,9 +93,7 @@ describe('Task component non editable description', () => {
 		})
 	);
 	
-	it('match snapshot', () => {
-		expect(component).toMatchSnapshot();
-	});
+	matchSnapshot(component);
 });
 
 describe('Task component editable description', () => {
@@ -98,15 +105,15 @@ describe('Task component editable description', () => {
 			updateTask,
 			cancelTask,
 			editTask,
-		}, component = mount(<Task {...props}/>);
+		}, component = shallow(<Task {...props}/>);
+	
+	component.find('div.description')
+		.simulate('doubleClick');
 	
 	it('should render', () =>
 		expect(component.find('div.app-width.task').exists())
 			.toBe(true)
 	);
-	
-	component.find('div.description')
-		.simulate('doubleClick');
 	
 	it('state integrity after', () => [{
 			prop: 'description',
@@ -120,39 +127,71 @@ describe('Task component editable description', () => {
 		)
 	);
 	
-	it('dom integrity', () => [
-		'div.icon.status',
-		'input.editable',
-		'img.icon.cancel'
-	].forEach(child =>
-		expect(component.find(child).exists())
-			.toBe(true)
-	));
-	
-	it('should invoke relevant callback', () => {
-		[{
-			test: 'status',
-			selector: 'div.icon.status',
-			callback: 'updateTask'
+	it('dom integrity', checkDOM(component, [{
+		selector: 'div.app-width.task',
+		props: {
+			'data-status': tasks[0].status
+		},
+		children: [{
+			selector: 'div',
+			length: 2
 		}, {
-			test: 'cancel',
-			selector: 'img.icon.cancel',
-			callback: 'cancelTask'
-		}].forEach(({test, selector, callback}) => {
-				component.find(selector)
-					.simulate('click');
-				let func = props[callback];
-				expect(func.called).toBe(true);
-				expect(func.callCount).toBe(1);
-			}
-		);
-		component.find('input.editable')
-			.simulate('keyup', {keyCode: 13, target: {value: props.value}});
-		expect(props.editTask.called).toBe(true);
-		expect(props.editTask.callCount).toBe(1);
-	});
+			selector: 'img',
+			length: 1
+		}, {
+			selector: 'i',
+			length: 1
+		}]
+	}, {
+		selector: 'div.icon.status',
+		props: {
+			title: 'Set Active',
+			onClick: updateTask
+		},
+		text: '\u00a0'
+	}, {
+		selector: Input,
+		props: {
+			value: tasks[0].description,
+			className: 'editable',
+			autoFocus: true
+		}
+	}, {
+		selector: 'img.icon.cancel',
+		props: {
+			src: CANCEL_ICON,
+			alt: 'cancel-task',
+			title: 'Set Cancel',
+			onClick: cancelTask
+		}
+	}, {
+		selector: 'i.updated',
+		text: getFormattedTimestamp(tasks[0].updated)
+	}]));
 	
-	it('match snapshot', () => {
-		expect(component).toMatchSnapshot();
-	});
+	it('check callbacks', checkEvents(component, [{
+		selector: 'div.icon.status',
+		event: 'click',
+		callback: updateTask,
+		count: 1
+	}, {
+		selector: 'img.icon.cancel',
+		event: 'click',
+		callback: cancelTask,
+		count: 1
+	}, {
+		selector: Input,
+		event: 'onValueReturn',
+		custom: true,
+		callback: editTask,
+		cArgs: [{
+			id: tasks[0].id,
+			description: tasks[0].description
+		}]
+	}]));
+	
+	/**
+	 * snapshot is being checked before setState
+	 */
+	setImmediate(matchSnapshot, 100, component);
 });

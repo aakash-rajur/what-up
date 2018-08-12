@@ -10,12 +10,13 @@ describe('Loading component', () => {
 			.toBe(true);
 	});
 	
-	it('check props', () => {
-		expect(component.find('div').hasClass('loading')).toBe(true);
-		expect(component.find('div').hasClass(className)).toBe(true);
-	});
+	it('dom integrity', checkDOM(component, [{
+		selector: 'div.loading',
+		props: {
+			className: `loading ${className}`
+		},
+		text: '\u00a0'
+	}]));
 	
-	it('match snapshot', () => {
-		expect(component).toMatchSnapshot();
-	});
+	matchSnapshot(component);
 });

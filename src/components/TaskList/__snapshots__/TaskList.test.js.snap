@@ -8,31 +8,6 @@ exports[`TaskList component when loading match snapshot 1`] = `
 </div>
 `;
 
-exports[`TaskList component with List match snapshot with non-empty list 1`] = `
-<div
-  className="task-list"
->
-  <Apollo(Apollo(Apollo(Task)))
-    created="1533233094860"
-    description="task1"
-    id="1533233094860"
-    index={0}
-    key="0"
-    status="COMPLETED"
-    updated="1533233094860"
-  />
-  <Apollo(Apollo(Apollo(Task)))
-    created="1533233143045"
-    description="task2"
-    id="1533233143045"
-    index={1}
-    key="1"
-    status="CREATED"
-    updated="1533233143045"
-  />
-</div>
-`;
-
 exports[`TaskList with error match snapshot 1`] = `
 <Error
   text="{\\"hello\\":\\"world\\"}"

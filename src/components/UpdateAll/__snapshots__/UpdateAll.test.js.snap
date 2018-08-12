@@ -2,7 +2,7 @@
 
 exports[`UpdateAll component match snapshot 1`] = `
 <img
-  alt="complete-all"
+  alt="toggle-all"
   className="lorem"
   onClick={[Function]}
   src="chevron-down.svg"

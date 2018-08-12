@@ -1,20 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Error component with default props match snapshot with default text 1`] = `
-<div
-  className="error-container "
->
-  <img
-    alt="Something Went Wrong"
-    src="alert.svg"
-  />
-  <pre>
-    Something Went Wrong
-  </pre>
-</div>
-`;
-
-exports[`Error component with non-default props match snapshot with non-default text 1`] = `
+exports[`Error component with error text match snapshot 1`] = `
 <div
   className="error-container "
 >
@@ -24,6 +10,20 @@ exports[`Error component with non-default props match snapshot with non-default 
   />
   <pre>
     hello world
+  </pre>
+</div>
+`;
+
+exports[`Error component without error text match snapshot 1`] = `
+<div
+  className="error-container "
+>
+  <img
+    alt="Something Went Wrong"
+    src="alert.svg"
+  />
+  <pre>
+    Something Went Wrong
   </pre>
 </div>
 `;

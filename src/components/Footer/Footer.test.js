@@ -2,23 +2,29 @@ import React from 'react';
 import Footer from './Footer';
 
 describe('Footer component', () => {
-    let component = shallow(<Footer/>);
-
-    it('should render', () => {
-        expect(component.find('div.documentation').exists())
-            .toBe(true);
-    });
-
-    it('dom tree integrity', () => [
-            {tag: 'em'}, {tag: 'br'}, {text: 'Created by '},
-            {tag: 'a'}, {tag: 'br'}, {text: 'Inspired by '},
-            {tag: 'a'}, {tag: 'br'}
-        ].forEach(({tag, text}, i) => {
-            let child = component.childAt(i);
-            expect(tag ? child.type() : child.text())
-                .toBe(tag || text)
-        })
-    );
-
-    it('match snapshot', () => expect(component).toMatchSnapshot());
+	let component = shallow(<Footer/>);
+	
+	it('should render', () => {
+		expect(component.find('div.documentation').exists())
+			.toBe(true);
+	});
+	
+	it('dom integrity', checkDOM(component, [{
+		selector: 'div.documentation',
+		children: [{
+			selector: 'em',
+			length: 1
+		}, {
+			selector: 'a',
+			length: 2
+		}]
+	}, {
+		selector: 'a.link.author',
+		text: 'aakashRajur'
+	}, {
+		selector: 'a.link.inspiration',
+		text: 'React • TodoMVC'
+	}]));
+	
+	matchSnapshot(component)
 });

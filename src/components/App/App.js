@@ -30,22 +30,22 @@ export class App extends Component {
 			<Fragment>
 				<h1 className="accent-font-color title">What Up!</h1>
 				<span className="new-task-container">
-                    <NewTask newTask={newTask} type="text"
-                             autoFocus={true} placeholder="new task?"
-                             className="app-width new-task"
-                             onChange={this.onNewTaskChange}
-                             onDone={this.clearNewTaskInput}/>
-                    <UpdateAll className="icon check-all"
-                                 nextStatus={this.getNextUpdateALlStatus()}/>
-                    <div className="filter-container">
-                          {FILTER_BUTTON_TEMPLATE.map((type, index) => (
-                              <FilterButton key={index} {...type}
-                                            stat={this.props[type.filter]}
-                                            active={type.filter === filter}
-                                            onClick={this.onFilterChange}/>
-                          ))}
-                      </div>
-                </span>
+          <NewTask newTask={newTask} type="text"
+                   autoFocus={true} placeholder="new task?"
+                   className="app-width new-task"
+                   onChange={this.onNewTaskChange}
+                   onDone={this.clearNewTaskInput}/>
+          <UpdateAll className="icon check-all"
+                       nextStatus={this.getNextUpdateALlStatus()}/>
+          <div className="filter-container">
+                {FILTER_BUTTON_TEMPLATE.map((type, index) => (
+                    <FilterButton key={index} {...type}
+                                  stat={this.props[type.filter]}
+                                  active={type.filter === filter}
+                                  onClick={this.onFilterChange}/>
+                ))}
+            </div>
+        </span>
 
 				<TaskList filter={filter} timestamp={timestamp}/>
 

@@ -12,23 +12,23 @@ describe('UpdateAll component', () => {
 			.toBe(true);
 	});
 	
-	it('image source', () => Object.entries({
+	it('dom integrity', checkDOM(component, [{
+		selector: 'img',
+		props: {
 			src: CHEVRON_DOWN_ICON,
-			alt: 'complete-all',
-			className,
+			alt: 'toggle-all',
+			title: 'Update ALl',
 			onClick: onUpdateAll,
-			title: 'Update All'
-		}).forEach(([key, value]) =>
-			expect(component.prop(key))
-				.toBe(value)
-		)
-	);
+			className,
+		}
+	}]));
 	
-	it('should invoke onUpdateAll', () => {
-		component.simulate('click');
-		expect(onUpdateAll.called).toBe(true);
-		expect(onUpdateAll.callCount).toBe(1);
-	});
+	it('check callbacks', checkEvents(component, [{
+		selector: 'img',
+		event: 'click',
+		callback: onUpdateAll,
+		count: 1
+	}]));
 	
-	it('match snapshot', () => expect(component).toMatchSnapshot());
+	matchSnapshot(component)
 });
