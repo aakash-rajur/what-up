@@ -3,12 +3,12 @@ import React from 'react';
 import CHEVRON_DOWN_ICON from "../../assets/chevron-down.svg";
 import {withUpdateAll} from "../../utils/apollo";
 
-function UpdateAll({className, updateAll}) {
+export function UpdateAll({className, updateAll}) {
 	return (
 		<img src={CHEVRON_DOWN_ICON} alt="complete-all"
 		     className={className} onClick={updateAll}
 		     title='Update All'/>
-	)
+	);
 }
 
 UpdateAll.propTypes = {

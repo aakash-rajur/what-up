@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NewTask component match snapshot 1`] = `
+<NewTask
+  addNewTask={[Function]}
+  autoFocus={true}
+  className="lorem"
+  newTask="helloWorld"
+  onChange={[Function]}
+  placeholder="ipsum"
+  type="text"
+>
+  <Input
+    autoFocus={true}
+    className="lorem"
+    onChange={[Function]}
+    onValueReturn={[Function]}
+    placeholder="ipsum"
+    type="text"
+    value="helloWorld"
+  >
+    <input
+      autoFocus={true}
+      className="lorem"
+      onChange={[Function]}
+      onKeyUp={[Function]}
+      placeholder="ipsum"
+      type="text"
+      value="helloWorld"
+    />
+  </Input>
+</NewTask>
+`;

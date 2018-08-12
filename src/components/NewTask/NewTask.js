@@ -3,7 +3,7 @@ import React from 'react';
 import {withNewTaskAddition} from "../../utils/apollo";
 import Input from "../Input/Input";
 
-function NewTask({newTask, onChange, addNewTask, ...rest}) {
+export function NewTask({newTask, onChange, addNewTask, ...rest}) {
 	let inputProps = {...rest};
 	delete inputProps.onDone;
 	return (
