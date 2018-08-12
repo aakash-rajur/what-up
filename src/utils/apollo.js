@@ -103,8 +103,7 @@ export const TASKS_UPDATED = gql`
     }
 `;
 
-export const withTaskMutations = compose(...
-	[{
+export const withTaskMutations = compose(...[{
 		mutation: CANCEL_TASK,
 		prefix: 'cancel',
 		args: ({id}) => ({id})
