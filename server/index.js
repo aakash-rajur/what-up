@@ -4,15 +4,20 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const http = require('http');
+const connectDB = require('./db');
 
-const PORT = process.env.SERVER_PORT;
-const {NODE_ENV} = process.env;
+const {
+	SERVER_PORT: PORT,
+	PG_URL,
+	NODE_ENV
+} = process.env;
 const TESTING = NODE_ENV === 'test';
-let server = null;
+let server = null, postgres = null;
 
-function stopServer() {
+async function stopServer() {
 	if (!server) return;
 	console.log('\nshutting down server');
+	postgres && await postgres.disconnect();
 	server.close();
 	console.log('server shut down');
 	process.exit(0);
@@ -23,6 +28,8 @@ function startServer() {
 		let DB = {data: [...require('../mock/tasks')]},
 			apollo = getApolloServer(DB),
 			app = express();
+		
+		postgres = connectDB(PG_URL);
 		
 		!TESTING && app.use(morgan('combined'));
 		if (NODE_ENV === 'production') {
@@ -40,6 +47,10 @@ function startServer() {
 		app.get('/reset', (req, res) => {
 			DB.data = [...require('../mock/tasks')];
 			res.send(DB);
+		});
+		
+		app.get('/', async (req, res) => {
+			res.send(await postgres.getTasks('hello'))
 		});
 		
 		server = http.createServer(app);
