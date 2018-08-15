@@ -2,9 +2,11 @@ require('dotenv').config();
 const {getApolloServer} = require("./apollo");
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const http = require('http');
 const connectDB = require('./db');
+const {authenticateUser} = require('./utils/library');
 
 const {
 	SERVER_PORT: PORT,
@@ -16,7 +18,7 @@ let server = null, postgres = null;
 
 async function stopServer() {
 	if (!server) return;
-	console.log('\nshutting down server');
+	console.log('shutting down server');
 	postgres && await postgres.disconnect();
 	server.close();
 	console.log('server shut down');
@@ -31,16 +33,23 @@ function startServer() {
 		
 		postgres = connectDB(PG_URL);
 		
-		!TESTING && app.use(morgan('combined'));
+		NODE_ENV === 'production' && app.use(morgan('combined'));
 		if (NODE_ENV === 'production') {
 			process.on('SIGINT', stopServer);
 			process.on('SIGUSR1', stopServer);
 			process.on('SIGUSR2', stopServer);
 		}
 		
-		app.use('*', cors({origin: '*'}));
-		
-		apollo.applyMiddleware({app});
+		app.use(cors({
+			origin: 'http://localhost:4000',
+			credentials: true,
+		}));
+		app.use(cookieParser());
+		app.use('*', authenticateUser);
+		apollo.applyMiddleware({cors: {
+				origin: 'http://localhost:4000',
+				credentials: true,
+			}, app});
 		
 		app.get('/data', (req, res) => res.send(DB));
 		

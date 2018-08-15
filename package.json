@@ -5,10 +5,12 @@
   "dependencies": {
     "apollo-server-express": "^2.0.0",
     "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "graphql": "^0.13.2",
+    "jsonwebtoken": "^8.3.0",
     "morgan": "^1.9.0",
     "pg": "^7.4.3"
   },
@@ -17,7 +19,7 @@
     "app:build": "NODE_ENV=production react-scripts build",
     "app:test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "server": "nodemon -w server -w server/index.js server",
+    "server": "nodemon -w server -w server/index.js server -w .env",
     "server:run": "NODE_ENV=production node server",
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
     "server:test:window": "set NODE_ENV=test&&mocha server/test/**.js -c",

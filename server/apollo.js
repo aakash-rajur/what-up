@@ -10,7 +10,8 @@ function resolverGenerator(DB) {
 			hello: (root, {name}) => {
 				return `hello ${name || 'world'}`;
 			},
-			tasks: (root, {filter, timestamp}) => {
+			tasks: (root, {filter, timestamp}, context) => {
+				console.log('user-hash', context.user);
 				timestamp && console.log(`requesting data for ${timestamp}`);
 				let {data = []} = DB, processed = data;
 				if (filter && filter !== 'ALL')
@@ -130,6 +131,7 @@ const typeDefs = gql`
 
 function getApolloServer(DB = {}) {
 	return new ApolloServer({
+		cors: false,
 		typeDefs,
 		resolvers: resolverGenerator(DB),
 		subscriptions: {
@@ -138,7 +140,8 @@ function getApolloServer(DB = {}) {
 				console.log(`websocket connected to ${remoteAddress}:${remotePort}`);
 				setTimeout(notify, 10, TASKS_CHANGED, getStats(DB.data))
 			}
-		}
+		},
+		context: ({req}) => ({...req})
 	});
 }
 

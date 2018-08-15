@@ -34,7 +34,7 @@ export default new ApolloClient({
 			wsLink,
 			new HttpLink({
 				uri: API_URL,
-				credentials: 'same-origin'
+				credentials: 'include'
 			}))
 	]),
 	cache: new InMemoryCache()
