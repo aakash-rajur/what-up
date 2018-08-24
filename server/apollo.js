@@ -4,67 +4,40 @@ const notifier = new PubSub();
 const {TASK_CANCELLED, TASK_CREATED, createPublisher, getTimestamp, findTask, getStats} = require('./utils/library');
 const notify = createPublisher(notifier);
 
-function resolverGenerator(DB) {
+function resolverGenerator(DB, postgres) {
 	return {
 		Query: {
 			hello: (root, {name}) => {
 				return `hello ${name || 'world'}`;
 			},
-			tasks: (root, {filter, timestamp}, context) => {
+			tasks: async (root, {filter, timestamp}, context) => {
 				console.log('user-hash', context.user);
 				timestamp && console.log(`requesting data for ${timestamp}`);
-				let {data = []} = DB, processed = data;
-				if (filter && filter !== 'ALL')
-					processed = data.filter(({status}) =>
-						status === filter);
-				return processed.sort(({created: t1}, {created: t2}) => t2 - t1);
+				return postgres.getTasks(context.user, filter);
 			}
 		},
 		Mutation: {
 			hello: (root, {name}) => `not hello ${name || 'world'}`,
-			add: (root, {description}) => {
-				let {data = []} = DB,
-					timestamp = getTimestamp(),
-					newTask = {
-						id: timestamp,
-						description,
-						status: TASK_CREATED,
-						created: timestamp,
-						updated: timestamp
-					};
-				data.push(newTask);
+			add: (root, {description}, context) => {
+				console.log('user-hash', context.user);
+				let {data = []} = DB;
 				notify(TASKS_CHANGED, getStats(data));
-				
-				return newTask.id;
+				return postgres.addTask(context.user, description);
 			},
 			remove: (root, {id}) => {
-				let {data = []} = DB,
-					task = findTask(data, id);
-				task.status = TASK_CANCELLED;
-				task.updated = getTimestamp();
+				let {data = []} = DB;
 				notify(TASKS_CHANGED, getStats(data));
-				
-				return task;
+				return postgres.updateTask(id, TASK_CANCELLED);
 			},
 			edit: (root, {id, description}) => {
-				let {data = []} = DB,
-					task = findTask(data, id);
-				if (task.description === description) return task;
-				task.description = description;
-				task.updated = getTimestamp();
+				let {data = []} = DB;
 				notify(TASKS_CHANGED, getStats(data));
-				
-				return task;
+				return postgres.editTask(id, description);
 			},
 			update: (root, {id, status}) => {
-				let {data = []} = DB,
-					task = findTask(data, id);
-				if (task.status === status) return task;
-				task.status = status;
-				task.updated = getTimestamp();
+				let {data = []} = DB;
 				notify(TASKS_CHANGED, getStats(data));
-				
-				return task;
+				return postgres.updateTask(id, status);
 			},
 			updateAll: (root, {status}) => {
 				let {data = []} = DB,
@@ -116,12 +89,12 @@ const typeDefs = gql`
     }
 
     type Mutation {
-        hello(name: String): String!,
+        hello(name: String):String!,
         add(description: String!):String!,
-        remove(id: String!):Task,
-        edit(id: String!, description: String!): Task
-        update(id: String!, status: String!): Task,
-        updateAll(status: String!): Int
+        remove(id: String!):String!,
+        edit(id: String!, description: String!):String!
+        update(id: String!, status: String!):String!,
+        updateAll(filter:String!, status: String!): Int
     }
 
     type Subscription {
@@ -129,11 +102,11 @@ const typeDefs = gql`
     }
 `;
 
-function getApolloServer(DB = {}) {
+function getApolloServer(DB = {}, postgres) {
 	return new ApolloServer({
 		cors: false,
 		typeDefs,
-		resolvers: resolverGenerator(DB),
+		resolvers: resolverGenerator(DB, postgres),
 		subscriptions: {
 			onConnect: (connectionParams, webSocket) => {
 				let {remoteAddress, remotePort} = webSocket._socket;

@@ -4,10 +4,16 @@ const {
 	REACT_APP_TASK_CANCELLED: TASK_CANCELLED,
 	REACT_APP_TASK_ALL: TASK_ALL,
 	SESSION_SECRET,
-	SESSION_TIMEOUT
+	SESSION_TIMEOUT,
+	PG_URL
 } = process.env;
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const connectDB = require('../db');
+
+function getDB() {
+	return connectDB(PG_URL);
+}
 
 function getTimestamp() {
 	return Date.now().toString(10);
@@ -61,22 +67,34 @@ function createUser() {
 	};
 }
 
-function authenticateUser(req, res, next) {
+async function authenticateUser(req, res, next) {
 	let {session} = req.cookies;
 	if (!session) {
 		let {user, token} = createUser();
 		res.cookie('session', token, {httpOnly: false});
+		const postgres = getDB();
+		await postgres.addUser(user);
 		req.user = user;
 	} else {
 		try {
 			let {user} = jwt.verify(session, SESSION_SECRET);
 			req.user = user;
 		} catch ({name, message}) {
+			const postgres = getDB();
+			let status = 500,
+				error = JSON.stringify({type: 'JWT_ERROR', name, message});
 			if (name === 'TokenExpiredError') {
 				//publish to show a message;
-				return res.status(401).send('session expired')
+				status = 401;
+				error = 'UNAUTHORIZED';
+				try {
+					let {user} = jwt.decode(session);
+					await postgres.deleteUser(user);
+				} catch (e) {
+					console.error(e);
+				}
 			}
-			return res.status(500).send(JSON.stringify({type: 'JWT_ERROR', name, message}));
+			return res.status(status).send(error);
 		}
 	}
 	next();
@@ -91,5 +109,6 @@ module.exports = {
 	findTask,
 	createPublisher,
 	getStats,
-	authenticateUser
+	authenticateUser,
+	getDB
 };

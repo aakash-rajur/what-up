@@ -14,6 +14,7 @@ export function UpdateAll({className, updateAll}) {
 UpdateAll.propTypes = {
 	className: PropTypes.string,
 	nextStatus: PropTypes.string,
+	filter: PropTypes.string
 };
 
 export default withUpdateAll(UpdateAll);

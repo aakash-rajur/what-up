@@ -72,11 +72,16 @@ create or replace function update_task(task_id int, new_status text)
 declare
   user_now timestamp;
 begin
+  if not (select exists(select 1 from tasks where id = task_id))
+  then RAISE EXCEPTION 'NOT_FOUND';
+  end if;
   update tasks
   set status  = new_status,
       updated = now()
-  where id = task_id returning updated
-    into user_now;
+  where id = task_id
+    and status != new_status
+      returning updated
+        into user_now;
   return user_now;
 end;
 $$
@@ -88,6 +93,9 @@ create or replace function edit_task(task_id int, new_description text default '
 declare
   user_now timestamp;
 begin
+if not (select exists(select 1 from tasks where id = task_id))
+  then RAISE EXCEPTION 'NOT_FOUND';
+  end if;
   update tasks
   set description = new_description,
       updated     = now()
@@ -116,13 +124,15 @@ $$
 language plpgsql;
 
 
-create or replace function get_tasks(user_hash text, task_status text = 'CREATED')
+create or replace function get_tasks(user_hash text, task_status text = 'ALL')
   returns table(id int, description text, status text, created timestamp with time zone, updated timestamp with time zone) as $$
 begin
   return query select t.id, t.description, t.status, t.created, t.updated
                from tasks t
                where t.uid = (select u.id from users u where u.hash = user_hash)
-                 and t.status = task_status;
+                       and task_status = 'ALL'
+                  or t.status = task_status
+               order by created desc;
 end;
 $$
 language plpgsql;

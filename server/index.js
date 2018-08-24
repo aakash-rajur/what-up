@@ -5,14 +5,13 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const http = require('http');
-const connectDB = require('./db');
-const {authenticateUser} = require('./utils/library');
-
+const {authenticateUser, getDB} = require('./utils/library');
 const {
 	SERVER_PORT: PORT,
-	PG_URL,
-	NODE_ENV
+	NODE_ENV,
+	FRONTEND_URL
 } = process.env;
+
 const TESTING = NODE_ENV === 'test';
 let server = null, postgres = null;
 
@@ -28,10 +27,15 @@ async function stopServer() {
 function startServer() {
 	return new Promise((resolve, reject) => {
 		let DB = {data: [...require('../mock/tasks')]},
-			apollo = getApolloServer(DB),
-			app = express();
+			apollo = null,
+			app = express(),
+			corsConfig = {
+				origin: FRONTEND_URL,
+				credentials: true
+			};
 		
-		postgres = connectDB(PG_URL);
+		postgres = getDB();
+		apollo = getApolloServer(DB, postgres);
 		
 		NODE_ENV === 'production' && app.use(morgan('combined'));
 		if (NODE_ENV === 'production') {
@@ -40,16 +44,10 @@ function startServer() {
 			process.on('SIGUSR2', stopServer);
 		}
 		
-		app.use(cors({
-			origin: 'http://localhost:4000',
-			credentials: true,
-		}));
+		app.use(cors(corsConfig));
 		app.use(cookieParser());
 		app.use('*', authenticateUser);
-		apollo.applyMiddleware({cors: {
-				origin: 'http://localhost:4000',
-				credentials: true,
-			}, app});
+		apollo.applyMiddleware({cors: corsConfig, app});
 		
 		app.get('/data', (req, res) => res.send(DB));
 		

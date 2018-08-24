@@ -22,7 +22,7 @@ export class App extends Component {
 			newTask: ''
 		};
 	}
-
+	
 	render() {
 		let {filter, newTask} = this.state,
 			{timestamp} = this.props;
@@ -36,36 +36,37 @@ export class App extends Component {
                    onChange={this.onNewTaskChange}
                    onDone={this.clearNewTaskInput}/>
           <UpdateAll className="icon check-all"
-                       nextStatus={this.getNextUpdateALlStatus()}/>
+                     nextStatus={this.getNextUpdateALlStatus()}
+                     filter={filter}/>
           <div className="filter-container">
                 {FILTER_BUTTON_TEMPLATE.map((type, index) => (
-                    <FilterButton key={index} {...type}
-                                  stat={this.props[type.filter]}
-                                  active={type.filter === filter}
-                                  onClick={this.onFilterChange}/>
+	                <FilterButton key={index} {...type}
+	                              stat={this.props[type.filter]}
+	                              active={type.filter === filter}
+	                              onClick={this.onFilterChange}/>
                 ))}
             </div>
         </span>
-
+				
 				<TaskList filter={filter} timestamp={timestamp}/>
-
+				
 				<Footer/>
 			</Fragment>
 		);
 	}
-
+	
 	onNewTaskChange({target: {value}}) {
 		this.setState({newTask: value});
 	}
-
+	
 	onFilterChange(filter) {
 		this.setState({filter});
 	}
-
+	
 	clearNewTaskInput() {
 		this.setState({newTask: ''});
 	}
-
+	
 	getNextUpdateALlStatus() {
 		let {[TASK_ALL]: total, [TASK_COMPLETED]: completed} = this.props;
 		return completed === total ? TASK_CREATED : TASK_COMPLETED;

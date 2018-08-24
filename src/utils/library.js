@@ -32,7 +32,7 @@ function padStart(string) {
 }
 
 export function getFormattedTimestamp(timestamp) {
-	let date = new Date(parseInt(timestamp, 10));
+	let date = new Date(timestamp);
 	// noinspection JSCheckFunctionSignatures
 	if (isNaN(date)) return 'Invalid Date';
 	let hr = date.getHours(),

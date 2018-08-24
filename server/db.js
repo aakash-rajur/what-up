@@ -3,12 +3,12 @@ const {Pool} = require('pg');
 
 let instance = null;
 
-function formatQuery(result) {
+function formatQuery(result, reduce = true) {
 	let {
 		rowCount,
 		rows
 	} = result;
-	if (rowCount === 1) return rows[0];
+	if (reduce && rowCount === 1) return rows[0];
 	return rows;
 }
 
@@ -29,9 +29,9 @@ class Postgres {
 		return this.pool.end();
 	}
 	
-	addUser(hash) {
+	async addUser(hash) {
 		this.checkConnection();
-		return formatQuery(this.pool.query(`select * from add_user('${hash}')`));
+		return formatQuery(await this.pool.query(`select * from add_user('${hash}')`));
 	}
 	
 	async deleteUser(hash) {
@@ -50,14 +50,14 @@ class Postgres {
 		return formatQuery(await this.pool.query(`select * from update_task('${taskId}','${newStatus}')`));
 	}
 	
-	async editTask(taskId, newDescription) {
+	async editTask(taskId, description) {
 		this.checkConnection();
-		return formatQuery(await this.pool.query(`select * from edit_task('${taskId}', '${newDescription}')`));
+		return formatQuery(await this.pool.query(`select * from edit_task('${taskId}', '${description}')`));
 	}
 	
-	async getTasks(hash) {
+	async getTasks(hash, status) {
 		this.checkConnection();
-		return formatQuery(await this.pool.query(`select * from get_tasks('${hash}')`));
+		return formatQuery(await this.pool.query(`select * from get_tasks('${hash}', '${status}')`), false);
 	}
 }
 

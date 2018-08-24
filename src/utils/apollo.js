@@ -54,34 +54,25 @@ export const FETCH_TASKS = gql`
 
 export const CANCEL_TASK = gql`
     mutation removeTask($id: String!) {
-        remove(id: $id){
-            description,
-            status
-        }
+        remove(id: $id)
     }
 `;
 
 export const EDIT_TASK = gql`
     mutation editTask($id: String!, $description: String!){
-        edit(id: $id, description: $description){
-            description,
-            status
-        }
+        edit(id: $id, description: $description)
     }
 `;
 
 export const UPDATE_TASK = gql`
     mutation updateTask($id: String!, $status: String!){
-        update(id: $id, status: $status){
-            description,
-            status
-        }
+        update(id: $id, status: $status)
     }
 `;
 
 export const UPDATE_ALL_TASKS = gql`
-    mutation updateAll($status: String!){
-        updateAll(status: $status)
+    mutation updateAll($filter: String!, $status: String!){
+        updateAll(filter: $filter,status: $status)
     }
 `;
 
@@ -145,7 +136,7 @@ export const withNewTaskAddition = graphql(ADD_TASK, {
 
 export const withUpdateAll = graphql(UPDATE_ALL_TASKS, {
 	props: ({mutate, result}) => ({updateAll: mutate, result}),
-	options: ({nextStatus}) => ({variables: {status: nextStatus}})
+	options: ({filter, nextStatus}) => ({variables: {filter, status: nextStatus}})
 });
 
 const defaultTaskUpdated = {
