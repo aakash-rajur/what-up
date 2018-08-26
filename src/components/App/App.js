@@ -1,6 +1,6 @@
 import React, {Component, Fragment} from 'react';
 import {withTasksUpdatedSubscription} from "../../utils/apollo";
-import {TASK_ALL, TASK_COMPLETED, TASK_CREATED} from "../../utils/constants";
+import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "../../utils/constants";
 import {FILTER_BUTTON_TEMPLATE} from "../../utils/library";
 import FilterButton from "../FilterButton/FilterButton";
 import Footer from "../Footer/Footer";
@@ -30,26 +30,24 @@ export class App extends Component {
 			<Fragment>
 				<h1 className="accent-font-color title">What Up!</h1>
 				<span className="new-task-container">
-          <NewTask newTask={newTask} type="text"
-                   autoFocus={true} placeholder="new task?"
-                   className="app-width new-task"
-                   onChange={this.onNewTaskChange}
-                   onDone={this.clearNewTaskInput}/>
-          <UpdateAll className="icon check-all"
-                     nextStatus={this.getNextUpdateALlStatus()}
-                     filter={filter}/>
-          <div className="filter-container">
-                {FILTER_BUTTON_TEMPLATE.map((type, index) => (
-	                <FilterButton key={index} {...type}
-	                              stat={this.props[type.filter]}
-	                              active={type.filter === filter}
-	                              onClick={this.onFilterChange}/>
-                ))}
-            </div>
-        </span>
-				
+					<NewTask newTask={newTask} type="text"
+					         autoFocus={true} placeholder="new task?"
+					         className="app-width new-task"
+					         onChange={this.onNewTaskChange}
+					         onDone={this.clearNewTaskInput}/>
+					<UpdateAll className="icon check-all"
+					           nextStatus={this.getNextUpdateALlStatus()}
+					           filter={filter}/>
+					<div className="filter-container">
+						{FILTER_BUTTON_TEMPLATE.map((type, index) => (
+							<FilterButton key={index} {...type}
+							              stat={this.props[type.filter]}
+							              active={type.filter === filter}
+							              onClick={this.onFilterChange}/>
+						))}
+	                </div>
+	        </span>
 				<TaskList filter={filter} timestamp={timestamp}/>
-				
 				<Footer/>
 			</Fragment>
 		);
@@ -68,8 +66,24 @@ export class App extends Component {
 	}
 	
 	getNextUpdateALlStatus() {
-		let {[TASK_ALL]: total, [TASK_COMPLETED]: completed} = this.props;
-		return completed === total ? TASK_CREATED : TASK_COMPLETED;
+		const {
+			[TASK_ALL]: total,
+			[TASK_COMPLETED]: completed
+		} = this.props, {
+			filter
+		} = this.state;
+		if (filter === TASK_ALL)
+			return completed === total ? TASK_CREATED : TASK_COMPLETED;
+		switch (filter) {
+			case TASK_ALL:
+				return completed === total ? TASK_CREATED : TASK_COMPLETED;
+			case TASK_CREATED:
+				return TASK_COMPLETED;
+			case TASK_COMPLETED:
+			case TASK_CANCELLED:
+			default:
+				return TASK_CREATED;
+		}
 	}
 }
 

@@ -10,6 +10,7 @@ class FilterButton extends Component {
 		title: PropTypes.string,
 		active: PropTypes.bool,
 		stat: PropTypes.number,
+		text: PropTypes.string,
 	};
 	
 	static defaultProps = {
@@ -26,13 +27,13 @@ class FilterButton extends Component {
 	
 	render() {
 		let {
-			title, active,
+			text, title, active,
 			filter, stat
 		} = this.props;
 		return (
 			<button title={title} className={`filter ${filter.toLowerCase()}`}
 			        onClick={this.onClick} data-active={active} disabled={active}>
-				{title}
+				{text}
 				<span className="badge">{stat > 99 ? '∞' : stat}</span>
 			</button>
 		)

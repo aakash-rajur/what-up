@@ -59,6 +59,17 @@ class Postgres {
 		this.checkConnection();
 		return formatQuery(await this.pool.query(`select * from get_tasks('${hash}', '${status}')`), false);
 	}
+	
+	async updateAllTasks(hash, selected, status) {
+		this.checkConnection();
+		let result = formatQuery(await this.pool.query(`select * from update_all_tasks('${hash}','${selected}','${status}')`));
+		return parseInt(result.update_all_tasks, 10);
+	}
+	
+	async getStats(hash) {
+		this.checkConnection();
+		return formatQuery(await this.pool.query(`select * from get_stats('${hash}')`), false);
+	}
 }
 
 function getDB(uri) {

@@ -30,16 +30,19 @@ function createPublisher(pubsub) {
 	}
 }
 
-function getStats(tasks = []) {
-	return tasks.reduce((acc, {status}) => {
-		if (status in acc) acc[status] += 1;
+async function getStats(hash) {
+	const postgres = getDB();
+	let stats = await postgres.getStats(hash);
+	stats = stats.reduce((acc, {status, count}) => {
+		acc[TASK_ALL] += (acc[status] = parseInt(count, 10));
 		return acc;
 	}, {
+		[TASK_ALL]: 0,
 		[TASK_CREATED]: 0,
 		[TASK_COMPLETED]: 0,
-		[TASK_CANCELLED]: 0,
-		[TASK_ALL]: tasks.length
+		[TASK_CANCELLED]: 0
 	});
+	return stats;
 }
 
 function findTask(tasks = [], id) {
@@ -67,6 +70,10 @@ function createUser() {
 	};
 }
 
+function verifySession(session) {
+	return jwt.verify(session, SESSION_SECRET).user;
+}
+
 async function authenticateUser(req, res, next) {
 	let {session} = req.cookies;
 	if (!session) {
@@ -77,8 +84,7 @@ async function authenticateUser(req, res, next) {
 		req.user = user;
 	} else {
 		try {
-			let {user} = jwt.verify(session, SESSION_SECRET);
-			req.user = user;
+			req.user = verifySession(session);
 		} catch ({name, message}) {
 			const postgres = getDB();
 			let status = 500,
@@ -105,8 +111,7 @@ module.exports = {
 	TASK_COMPLETED,
 	TASK_CANCELLED,
 	TASK_ALL,
-	getTimestamp,
-	findTask,
+	verifySession,
 	createPublisher,
 	getStats,
 	authenticateUser,

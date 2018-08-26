@@ -136,3 +136,32 @@ begin
 end;
 $$
 language plpgsql;
+
+
+create or replace function get_stats(user_hash text)
+  returns table(status text, count bigint) as $$
+begin
+  return query select tasks.status, count(*)
+          from tasks
+          where uid = (select id from users where hash = user_hash)
+          group by tasks.status;
+end;
+$$
+language plpgsql;
+
+create or replace function update_all_tasks(user_hash text, selected text, new_status text)
+  returns bigint as $$
+declare
+  update_count bigint :=0;
+  updated_at   timestamp with time zone := now();
+begin
+  update tasks
+  set status  = new_status,
+      updated = updated_at
+  where uid = (select id from users where hash = user_hash)
+    and (selected = 'ALL' or status = selected);
+  get diagnostics update_count = row_count;
+  return update_count;
+end;
+$$
+language plpgsql;

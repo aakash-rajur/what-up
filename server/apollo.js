@@ -1,7 +1,7 @@
 const {ApolloServer, gql, PubSub} = require('apollo-server-express');
-const TASKS_CHANGED = process.env.REACT_APP_TASKS_CHANGED;
+const cookie = require('cookie');
 const notifier = new PubSub();
-const {TASK_CANCELLED, TASK_CREATED, createPublisher, getTimestamp, findTask, getStats} = require('./utils/library');
+const {TASKS_CHANGED, TASK_CANCELLED, TASK_CREATED, createPublisher, verifySession, getStats} = require('./utils/library');
 const notify = createPublisher(notifier);
 
 function resolverGenerator(DB, postgres) {
@@ -11,45 +11,35 @@ function resolverGenerator(DB, postgres) {
 				return `hello ${name || 'world'}`;
 			},
 			tasks: async (root, {filter, timestamp}, context) => {
-				console.log('user-hash', context.user);
-				timestamp && console.log(`requesting data for ${timestamp}`);
 				return postgres.getTasks(context.user, filter);
 			}
 		},
 		Mutation: {
 			hello: (root, {name}) => `not hello ${name || 'world'}`,
-			add: (root, {description}, context) => {
-				console.log('user-hash', context.user);
-				let {data = []} = DB;
-				notify(TASKS_CHANGED, getStats(data));
-				return postgres.addTask(context.user, description);
+			add: async (root, {description}, context) => {
+				let result = await postgres.addTask(context.user, description);
+				notify(TASKS_CHANGED, await getStats(context.user));
+				return result;
 			},
-			remove: (root, {id}) => {
-				let {data = []} = DB;
-				notify(TASKS_CHANGED, getStats(data));
-				return postgres.updateTask(id, TASK_CANCELLED);
+			remove: async (root, {id}, context) => {
+				let result = await postgres.updateTask(id, TASK_CANCELLED);
+				notify(TASKS_CHANGED, await getStats(context.user));
+				return result;
 			},
-			edit: (root, {id, description}) => {
-				let {data = []} = DB;
-				notify(TASKS_CHANGED, getStats(data));
-				return postgres.editTask(id, description);
+			edit: async (root, {id, description}, context) => {
+				let result = await postgres.editTask(id, description);
+				notify(TASKS_CHANGED, await getStats(context.user));
+				return result;
 			},
-			update: (root, {id, status}) => {
-				let {data = []} = DB;
-				notify(TASKS_CHANGED, getStats(data));
-				return postgres.updateTask(id, status);
+			update: async (root, {id, status}, context) => {
+				let result = await postgres.updateTask(id, status);
+				notify(TASKS_CHANGED, await getStats(context.user));
+				return result;
 			},
-			updateAll: (root, {status}) => {
-				let {data = []} = DB,
-					updated = getTimestamp();
-				data.forEach(task => {
-					task.status = status;
-					task.updated = updated;
-					
-				});
-				notify(TASKS_CHANGED, getStats(data));
-				
-				return data.length;
+			updateAll: async (root, {filter, status}, context) => {
+				let result = await postgres.updateAllTasks(context.user, filter, status);
+				notify(TASKS_CHANGED, await getStats(context.user));
+				return result;
 			}
 		},
 		Subscription: {
@@ -108,10 +98,17 @@ function getApolloServer(DB = {}, postgres) {
 		typeDefs,
 		resolvers: resolverGenerator(DB, postgres),
 		subscriptions: {
-			onConnect: (connectionParams, webSocket) => {
+			onConnect: async (connectionParams, webSocket) => {
 				let {remoteAddress, remotePort} = webSocket._socket;
 				console.log(`websocket connected to ${remoteAddress}:${remotePort}`);
-				setTimeout(notify, 10, TASKS_CHANGED, getStats(DB.data))
+				let {session} = cookie.parse(webSocket.upgradeReq.headers.cookie);
+				try {
+					let user = verifySession(session);
+					console.log(user);
+					if (user) setImmediate(notify, TASKS_CHANGED, await getStats(user));
+				} catch (e) {
+					console.error(e);
+				}
 			}
 		},
 		context: ({req}) => ({...req})
