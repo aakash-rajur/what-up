@@ -7,8 +7,8 @@ import Footer from "../Footer/Footer";
 import NewTask from "../NewTask/NewTask";
 import TaskList from "../TaskList/TaskList";
 import UpdateAll from "../UpdateAll/UpdateAll";
-import './App.css';
 import SnackBar from "../SnackBar/SnackBar";
+import './App.css';
 
 export class App extends Component {
 	constructor(props) {
@@ -29,7 +29,7 @@ export class App extends Component {
 			filter,
 			newTask
 		} = this.state, {
-			timestamp,
+			timestamp = 'NONE',
 			session
 		} = this.props;
 		return (

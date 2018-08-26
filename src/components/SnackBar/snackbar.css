@@ -34,6 +34,8 @@
     white-space: pre-line;
     word-break: break-all;
     font-weight: lighter;
+    flex-grow: 1;
+    flex-shrink: 1;
 }
 
 .snack-bar .icon {

@@ -12,7 +12,6 @@ const {
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./db');
-const publisher = require('./publisher');
 
 function getDB() {
 	return connectDB(PG_URL);
@@ -72,26 +71,14 @@ async function authenticateUser(req, res, next) {
 		try {
 			req.user = verifySession(session);
 		} catch ({name, message}) {
-			const postgres = getDB();
 			let status = 500,
 				error = JSON.stringify({type: 'JWT_ERROR', name, message});
 			if (name === 'TokenExpiredError') {
-				publisher.notify(SESSION_CHANGE, {
-					additional: JSON.stringify({
-						message: 'Your session has expired\nPlease Refresh!'
-					})
-				});
 				status = 401;
 				error = 'UNAUTHORIZED';
-				try {
-					let {user} = jwt.decode(session);
-					await postgres.deleteTasks(user);
-					await postgres.deleteUser(user);
-				} catch (e) {
-					console.error(e);
-				}
 			}
-			return res.status(status).send(error);
+			res.clearCookie('session');
+			req.authError = {status, error};
 		}
 	}
 	next();

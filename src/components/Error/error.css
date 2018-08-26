@@ -26,4 +26,7 @@
     line-height: 1.5em;
     font-size: 0.9em;
     padding: 0 1em;
+    max-width: 400px;
+    word-break: break-all;
+    overflow: auto;
 }
