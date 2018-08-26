@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react';
-import {withTasksUpdatedSubscription} from "../../utils/apollo";
+import {withSessionAndTaskSubscription} from "../../utils/apollo";
 import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "../../utils/constants";
 import {FILTER_BUTTON_TEMPLATE} from "../../utils/library";
 import FilterButton from "../FilterButton/FilterButton";
@@ -8,6 +8,7 @@ import NewTask from "../NewTask/NewTask";
 import TaskList from "../TaskList/TaskList";
 import UpdateAll from "../UpdateAll/UpdateAll";
 import './App.css';
+import SnackBar from "../SnackBar/SnackBar";
 
 export class App extends Component {
 	constructor(props) {
@@ -24,8 +25,13 @@ export class App extends Component {
 	}
 	
 	render() {
-		let {filter, newTask} = this.state,
-			{timestamp} = this.props;
+		let {
+			filter,
+			newTask
+		} = this.state, {
+			timestamp,
+			session
+		} = this.props;
 		return (
 			<Fragment>
 				<h1 className="accent-font-color title">What Up!</h1>
@@ -49,6 +55,8 @@ export class App extends Component {
 	        </span>
 				<TaskList filter={filter} timestamp={timestamp}/>
 				<Footer/>
+				<SnackBar timeout={2000}
+				          message={session && session.message}/>
 			</Fragment>
 		);
 	}
@@ -87,4 +95,4 @@ export class App extends Component {
 	}
 }
 
-export default withTasksUpdatedSubscription(App);
+export default withSessionAndTaskSubscription(App);

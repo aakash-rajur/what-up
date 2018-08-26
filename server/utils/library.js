@@ -3,13 +3,16 @@ const {
 	REACT_APP_TASK_COMPLETED: TASK_COMPLETED,
 	REACT_APP_TASK_CANCELLED: TASK_CANCELLED,
 	REACT_APP_TASK_ALL: TASK_ALL,
+	REACT_APP_TASKS_CHANGED: TASKS_CHANGED,
+	REACT_APP_SESSION_CHANGE: SESSION_CHANGE,
 	SESSION_SECRET,
 	SESSION_TIMEOUT,
 	PG_URL
 } = process.env;
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const connectDB = require('../db');
+const connectDB = require('./db');
+const publisher = require('./publisher');
 
 function getDB() {
 	return connectDB(PG_URL);
@@ -17,17 +20,6 @@ function getDB() {
 
 function getTimestamp() {
 	return Date.now().toString(10);
-}
-
-function createPublisher(pubsub) {
-	return (event, data = {}) => {
-		pubsub.publish(event, {
-			tasksChanged: {
-				...data,
-				timestamp: getTimestamp()
-			}
-		})
-	}
 }
 
 async function getStats(hash) {
@@ -43,12 +35,6 @@ async function getStats(hash) {
 		[TASK_CANCELLED]: 0
 	});
 	return stats;
-}
-
-function findTask(tasks = [], id) {
-	let task = tasks.find(({id: ID}) => ID === id);
-	if (!task) throw new Error(`task with ${id} doesn't exist`);
-	return task;
 }
 
 function sha1(text) {
@@ -90,11 +76,16 @@ async function authenticateUser(req, res, next) {
 			let status = 500,
 				error = JSON.stringify({type: 'JWT_ERROR', name, message});
 			if (name === 'TokenExpiredError') {
-				//publish to show a message;
+				publisher.notify(SESSION_CHANGE, {
+					additional: JSON.stringify({
+						message: 'Your session has expired\nPlease Refresh!'
+					})
+				});
 				status = 401;
 				error = 'UNAUTHORIZED';
 				try {
 					let {user} = jwt.decode(session);
+					await postgres.deleteTasks(user);
 					await postgres.deleteUser(user);
 				} catch (e) {
 					console.error(e);
@@ -111,9 +102,11 @@ module.exports = {
 	TASK_COMPLETED,
 	TASK_CANCELLED,
 	TASK_ALL,
+	TASKS_CHANGED,
+	SESSION_CHANGE,
 	verifySession,
-	createPublisher,
 	getStats,
 	authenticateUser,
-	getDB
+	getDB,
+	getTimestamp
 };

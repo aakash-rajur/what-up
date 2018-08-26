@@ -4,7 +4,20 @@ import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "./constant
 
 export function promiseSetState(context) {
 	return newState => new Promise(resolve =>
-		context.setState(newState, resolve));
+		context.setState(newState, resolve)
+	);
+}
+
+export function wait(delay, cb, ...args) {
+	let timeout = null,
+		promise = new Promise(resolve => {
+			timeout = setTimeout(async () =>
+				resolve(cb && await cb(...(args || []))),
+				delay
+			);
+		});
+	promise.cancel = () => clearTimeout(timeout);
+	return promise;
 }
 
 export function renderMutations(config) {

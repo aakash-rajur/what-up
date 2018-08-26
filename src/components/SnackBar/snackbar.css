@@ -1,0 +1,52 @@
+.snack-bar {
+    position: fixed;
+    right: 4em;
+    bottom: 2em;
+    min-width: 320px;
+    max-width: 400px;
+    min-height: 60px;
+    background: #323232;
+    color: white;
+    padding: 1em;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+
+    display: none;
+    align-items: center;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.snack-bar.visible, .snack-bar.fade-in, .snack-bar.fade-out {
+    display: flex;
+}
+
+.snack-bar.fade-in {
+    opacity: 1;
+}
+
+.snack-bar.fade-out {
+    opacity: 0;
+}
+
+.message {
+    margin: 0;
+    white-space: pre-line;
+    word-break: break-all;
+    font-weight: lighter;
+}
+
+.snack-bar .icon {
+    margin-left: 1em;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .snack-bar {
+        left: 2em;
+        right: 2em;
+        min-width: unset;
+        max-width: unset;
+
+    }
+}

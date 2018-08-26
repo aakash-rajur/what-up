@@ -1,5 +1,5 @@
 require('dotenv').config();
-const {getApolloServer} = require("./apollo");
+const {getApolloServer} = require("./utils/apollo");
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');

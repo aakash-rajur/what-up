@@ -55,6 +55,11 @@ class Postgres {
 		return formatQuery(await this.pool.query(`select * from edit_task('${taskId}', '${description}')`));
 	}
 	
+	async deleteTasks(user) {
+		this.checkConnection();
+		return formatQuery(await this.pool.query(`select * from delete_tasks('${user}')`));
+	}
+	
 	async getTasks(hash, status) {
 		this.checkConnection();
 		return formatQuery(await this.pool.query(`select * from get_tasks('${hash}', '${status}')`), false);
