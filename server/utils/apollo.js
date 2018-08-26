@@ -1,7 +1,7 @@
 const {ApolloServer, gql} = require('apollo-server-express');
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
-const {getPublisher} = require('./publisher');
+const getPublisher = require('./publisher');
 const publisher = getPublisher();
 const {
 	TASKS_CHANGED,
@@ -122,7 +122,10 @@ function resolverGenerator(DB, postgres) {
 	}
 }
 
-function getApolloServer(DB = {}, postgres) {
+function getApolloServer(DB = {}, postgres)
+
+¢
+{
 	return new ApolloServer({
 		cors: false,
 		typeDefs,

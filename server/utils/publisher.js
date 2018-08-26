@@ -28,4 +28,4 @@ function getPublisher() {
 	return instance;
 }
 
-module.exports = {getPublisher};
+module.exports = getPublisher;
