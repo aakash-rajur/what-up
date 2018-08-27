@@ -7,14 +7,16 @@ const {
 	REACT_APP_SESSION_CHANGE: SESSION_CHANGE,
 	SESSION_SECRET,
 	SESSION_TIMEOUT,
-	PG_URL
+	PG_URL,
+	DATABASE_URL
 } = process.env;
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./db');
 
 function getDB() {
-	return connectDB(PG_URL);
+	let url = DATABASE_URL || PG_URL;
+	return connectDB(url);
 }
 
 function getTimestamp() {
