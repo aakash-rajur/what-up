@@ -67,7 +67,7 @@ function hasSessionExpired(context) {
 	return false;
 }
 
-function resolverGenerator(DB, postgres) {
+function resolverGenerator(postgres) {
 	return {
 		Query: {
 			hello: (root, {name}) => {
@@ -122,14 +122,11 @@ function resolverGenerator(DB, postgres) {
 	}
 }
 
-function getApolloServer(DB = {}, postgres)
-
-¢
-{
+function getApolloServer(postgres) {
 	return new ApolloServer({
 		cors: false,
 		typeDefs,
-		resolvers: resolverGenerator(DB, postgres),
+		resolvers: resolverGenerator(postgres),
 		subscriptions: {
 			onConnect: async (connectionParams, webSocket) => {
 				let {remoteAddress, remotePort} = webSocket._socket;

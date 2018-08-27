@@ -26,8 +26,7 @@ async function stopServer() {
 
 function startServer() {
 	return new Promise((resolve, reject) => {
-		let DB = {data: [...require('../mock/tasks')]},
-			apollo = null,
+		let apollo = null,
 			app = express(),
 			corsConfig = {
 				origin: FRONTEND_URL,
@@ -35,7 +34,7 @@ function startServer() {
 			};
 		
 		postgres = getDB();
-		apollo = getApolloServer(DB, postgres);
+		apollo = getApolloServer(postgres);
 		
 		NODE_ENV === 'production' && app.use(morgan('combined'));
 		if (NODE_ENV === 'production') {
@@ -51,14 +50,7 @@ function startServer() {
 		
 		app.get('/data', (req, res) => res.send(DB));
 		
-		app.get('/reset', (req, res) => {
-			DB.data = [...require('../mock/tasks')];
-			res.send(DB);
-		});
-		
-		app.get('/', async (req, res) => {
-			res.send(await postgres.getTasks('hello'))
-		});
+		app.get('/', async (req, res) => res.send('hello world'));
 		
 		server = http.createServer(app);
 		apollo.installSubscriptionHandlers(server);
