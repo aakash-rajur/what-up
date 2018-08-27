@@ -48,8 +48,6 @@ function startServer() {
 		app.use('*', authenticateUser);
 		apollo.applyMiddleware({cors: corsConfig, app});
 		
-		app.get('/data', (req, res) => res.send(DB));
-		
 		app.get('/', async (req, res) => res.send('hello world'));
 		
 		server = http.createServer(app);
