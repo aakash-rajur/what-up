@@ -26,6 +26,7 @@
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
     "server:test:window": "set NODE_ENV=test&&mocha server/test/**.js -c",
     "dev": "npm-run-all -p server app",
+    "postinstall": "node server/setup.js",
     "start": "node server"
   },
   "devDependencies": {

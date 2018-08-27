@@ -79,6 +79,10 @@ class Postgres {
 		this.checkConnection();
 		return formatQuery(await this.pool.query(`select * from get_stats('${hash}')`), false);
 	}
+	
+	query(...args) {
+		return this.pool.query(...args);
+	}
 }
 
 function getDB(uri) {
