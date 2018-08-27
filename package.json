@@ -18,7 +18,7 @@
   },
   "scripts": {
     "app": "react-scripts start",
-    "app:build": "NODE_ENV=production react-scripts build",
+    "app:build": "react-scripts build",
     "app:test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "server": "nodemon -w server -w server/index.js server -w .env",
@@ -26,7 +26,7 @@
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
     "server:test:window": "set NODE_ENV=test&&mocha server/test/**.js -c",
     "dev": "npm-run-all -p server app",
-    "postinstall": "node server/setup.js",
+    "postinstall": "npm run app:build && node server/setup.js",
     "start": "node server"
   },
   "devDependencies": {

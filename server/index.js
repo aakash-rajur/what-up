@@ -5,6 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const http = require('http');
+const path = require('path');
 const {authenticateUser, getDB} = require('./utils/library');
 const {
 	SERVER_PORT,
@@ -31,7 +32,7 @@ function startServer() {
 		let apollo = null,
 			app = express(),
 			corsConfig = {
-				origin: FRONTEND_URL,
+				origin: FRONTEND_URL.split(','),
 				credentials: true
 			};
 		
@@ -50,10 +51,12 @@ function startServer() {
 		app.use('*', authenticateUser);
 		apollo.applyMiddleware({cors: corsConfig, app});
 		
-		app.get('/', async (req, res) => res.send('hello world'));
-		
 		server = http.createServer(app);
 		apollo.installSubscriptionHandlers(server);
+		
+		app.get('/hello', async (req, res) => res.send('hello world'));
+		
+		app.use('/', express.static(path.join(__dirname, '../build')));
 		
 		server.listen(PORT, err => {
 			if (err) return reject(err);
