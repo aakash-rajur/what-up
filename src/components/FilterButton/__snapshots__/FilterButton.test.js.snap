@@ -24,7 +24,6 @@ exports[`FilterButton with props match snapshot 1`] = `
   onClick={[Function]}
   title="ALL"
 >
-  ALL
   <span
     className="badge"
   >

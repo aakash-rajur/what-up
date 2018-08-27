@@ -33,7 +33,7 @@ exports[`Task component non editable description match snapshot 1`] = `
   <i
     className="updated"
   >
-    11: 34 A.M, Thu 2 Aug
+    Invalid Date
   </i>
 </div>
 `;
