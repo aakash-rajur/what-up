@@ -7,11 +7,13 @@ const morgan = require('morgan');
 const http = require('http');
 const {authenticateUser, getDB} = require('./utils/library');
 const {
-	SERVER_PORT: PORT,
+	SERVER_PORT,
 	NODE_ENV,
-	FRONTEND_URL
+	FRONTEND_URL,
+	PORT: HEROKU_PORT
 } = process.env;
 
+const PORT = SERVER_PORT || HEROKU_PORT || 8080;
 const TESTING = NODE_ENV === 'test';
 let server = null, postgres = null;
 
