@@ -42,22 +42,26 @@ class Postgres {
 	
 	async addTask(hash, description) {
 		this.checkConnection();
-		return formatQuery(await this.pool.query(`select * from add_task('${hash}', '${description}')`));
+		let result = formatQuery(await this.pool.query(`select * from add_task('${hash}', '${description}')`));
+		return result.add_task;
 	}
 	
 	async updateTask(taskId, newStatus) {
 		this.checkConnection();
-		return formatQuery(await this.pool.query(`select * from update_task('${taskId}','${newStatus}')`));
+		let result = formatQuery(await this.pool.query(`select * from update_task('${taskId}','${newStatus}')`));
+		return result.update_task;
 	}
 	
 	async editTask(taskId, description) {
 		this.checkConnection();
-		return formatQuery(await this.pool.query(`select * from edit_task('${taskId}', '${description}')`));
+		let result = formatQuery(await this.pool.query(`select * from edit_task('${taskId}', '${description}')`));
+		return result.edit_task;
 	}
 	
 	async deleteTasks(user) {
 		this.checkConnection();
-		return formatQuery(await this.pool.query(`select * from delete_tasks('${user}')`));
+		let result = formatQuery(await this.pool.query(`select * from delete_tasks('${user}')`));
+		return result.delete_tasks;
 	}
 	
 	async getTasks(hash, status) {
