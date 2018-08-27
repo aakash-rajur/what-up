@@ -1,4 +1,5 @@
 require('dotenv').config();
+const {NODE_ENV} = process.env;
 const {Pool} = require('pg');
 
 let instance = null;
@@ -16,7 +17,10 @@ class Postgres {
 	constructor(uri = null) {
 		if (!uri) throw new Error('uri not provided');
 		this.uri = uri;
-		this.pool = new Pool({connectionString: uri});
+		this.pool = new Pool({
+			connectionString: uri,
+			ssl: NODE_ENV === 'production'
+		});
 	}
 	
 	checkConnection() {
@@ -86,8 +90,10 @@ class Postgres {
 }
 
 function getDB(uri) {
-	if (!instance)
+	if (!instance){
+		console.log('environment', NODE_ENV);
 		instance = new Postgres(uri);
+	}
 	return instance;
 }
 
