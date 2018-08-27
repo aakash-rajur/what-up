@@ -4,126 +4,151 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const {expect} = chai;
 const should = chai.should();
+const jwt = require('jsonwebtoken');
+const {getDB} = require('../utils/library');
 
 chai.use(chaiHttp);
 const SERVER_URL = `http:\\\\localhost:${process.env.SERVER_PORT}`;
 const API_URL = process.env.REACT_APP_API_URL;
 const graphql = chai.request(API_URL);
-let DB = null;
+let cookies = null;
 
-function testDate() {
-	it('data should not be null', done => {
-		DB = {data: require('../../mock/tasks')};
-		expect(DB.data).to.not.be.null;
-		done();
-	});
-	
-	it('api should return valid data', async () => {
-		let res = await chai.request(SERVER_URL).get('/data');
-		res.should.have.status(200);
-		res.should.be.json;
-		res.body.data.should.be.an('array');
-		res.body.should.be.deep.equal(DB);
+function testSession() {
+	it('api should create a session', async () => {
+		let res = await chai.request(SERVER_URL).get('/');
+		await res.should.have.status(200);
+		await expect(res.text).to.equal('hello world');
+		await res.headers['set-cookie'].should.be.an('array');
+		cookies = res.headers['set-cookie'];
 		return res;
 	});
 }
 
-function testQuery() {
-	it('query tasks', async () => {
-		let res = await graphql.post('/graphql')
-			.send({query: "query{tasks{id, description, status, created, updated}}"});
-		res.should.have.status(200);
-		res.should.be.json;
-		let {tasks: [task]} = res.body.data;
-		['id', 'description', 'status', 'created', 'updated']
-			.forEach(property => {
-				task.should.have.property(property);
-				task[property].should.be.a('string');
-			});
-		return res;
-	});
-}
-
-function testMutation() {
-	let newTaskID = null,
+function testAPI() {
+	let task1ID = -1,
+		task2ID = -1,
+		task3ID = -1,
 		tests = [{
-			name: 'add new task',
-			args: null,
-			query: () => "mutation{  add(description:\"new task\")}",
-			test: (args, res) => {
-				res.body.data.should.have.property('add');
-				newTaskID = res.body.data.add;
-				newTaskID.should.be.a('string');
+			name: 'add new task1',
+			query: () => "mutation{add(description:\"new task1\")}",
+			test: async res => {
+				await res.body.data.should.have.property('add');
+				await res.body.data.add.should.be.a('string');
+				task1ID = parseInt(res.body.data.add, 10);
 			}
 		}, {
-			name: 'edit description',
-			args: {description: 'hello world'},
-			query: ({description}) => `mutation {edit(id:"${newTaskID}", description:"${description}"){id, description, status, updated}}`,
-			test: ({description}, res) => {
-				let {edit} = res.body.data;
-				['id', 'description', 'status', 'updated']
-					.forEach(property => {
-						edit.should.have.property(property);
-						edit[property].should.be.a('string');
-					});
-				edit.id.should.equal(newTaskID);
-				edit.description.should.equal(description);
-				edit.status.should.equal('CREATED');
+			name: 'add new task2',
+			query: () => "mutation{add(description:\"new task2\")}",
+			test: async res => {
+				await res.body.data.should.have.property('add');
+				await res.body.data.add.should.be.a('string');
+				task2ID = parseInt(res.body.data.add, 10);
 			}
 		}, {
-			name: 'update status',
+			name: 'add new task3',
+			query: () => "mutation{add(description:\"new task3\")}",
+			test: async res => {
+				await res.body.data.should.have.property('add');
+				await res.body.data.add.should.be.a('string');
+				task3ID = parseInt(res.body.data.add, 10);
+			}
+		}, {
+			name: 'update all tasks',
+			query: () => `mutation{updateAll(filter:"ALL",status:"COMPLETED")}`,
+			test: async res => {
+				await res.body.data.should.have.property('updateAll');
+				await res.body.data.updateAll.should.be.a('number');
+				await expect(res.body.data.updateAll).to.equal(3);
+			}
+		}, {
+			name: 'edit task description',
+			query: () => `mutation {edit(id:"${task1ID}", description:"helloworld")}`,
+			test: async res => {
+				await res.body.data.should.have.property('edit');
+				await res.body.data.edit.should.be.a('string');
+				let date = new Date(res.body.data.edit);
+				await expect(isNaN(date)).to.be.false;
+			}
+		}, {
+			name: 'update task',
 			args: {newStatus: 'COMPLETED'},
-			query: ({newStatus}) => `mutation{update(id:"${newTaskID}" status:"${newStatus}"){id, description, status, updated, created}}`,
-			test: ({newStatus}, res) => {
-				let {update} = res.body.data;
-				['id', 'description', 'status', 'updated', 'created']
-					.forEach(property => {
-						update.should.have.property(property);
-						update[property].should.be.a('string');
-					});
-				update.id.should.equal(newTaskID);
-				update.status.should.equal(newStatus);
+			query: () => `mutation{update(id:"${task2ID}" status:"CREATED")}`,
+			test: async res => {
+				await res.body.data.should.have.property('update');
+				await res.body.data.update.should.be.a('string');
+				let date = new Date(res.body.data.update);
+				await expect(isNaN(date)).to.be.false;
 			}
 		}, {
-			name: 'remove task',
-			args: null,
-			query: () => `mutation {remove(id:"${newTaskID}"){id, description, status, updated, created}}`,
-			test: (args, res) => {
-				let {remove} = res.body.data;
-				['id', 'description', 'status', 'updated', 'created']
-					.forEach(property => {
-						remove.should.have.property(property);
-						remove[property].should.be.a('string');
-					});
-				remove.id.should.equal(newTaskID);
-				remove.status.should.equal('CANCELLED');
+			name: 'cancel task',
+			query: () => `mutation{remove(id:"${task3ID}")}`,
+			test: async res => {
+				await res.body.data.should.have.property('remove');
+				await res.body.data.remove.should.be.a('string');
+				let date = new Date(res.body.data.remove);
+				await expect(isNaN(date)).to.be.false;
+			}
+		}, {
+			name: 'fetch tasks',
+			query: () => `query{tasks(filter:"ALL", timestamp:"${new Date().valueOf()}"){id, description, status, created, updated}}`,
+			test: async res => {
+				await res.body.data.should.have.property('tasks');
+				await res.body.data.tasks.should.be.a('array');
+				await expect(res.body.data.tasks.length).to.equal(3);
+				let {tasks} = res.body.data,
+					fields = ['id', 'description', 'created', 'updated'],
+					template = [{
+						task: tasks[0],
+						id: task3ID,
+						status: 'CANCELLED'
+					}, {
+						task: tasks[1],
+						id: task2ID,
+						status: 'CREATED'
+					}, {
+						task: tasks[2],
+						id: task1ID,
+						status: 'COMPLETED'
+					}];
+				await Promise.all(template.map(async ({task, id, status}) => {
+					await Promise.all(fields.map(field => task.should.have.property(field)));
+					await expect(parseInt(task.id, 10)).to.equal(id);
+					await expect(task.status).to.equal(status);
+				}));
 			}
 		}];
 	
-	tests.forEach(({name, args, query, test}) =>
+	tests.forEach(({name, query, test}) =>
 		it(name, async () => {
-			try {
-				let res = await graphql.post('/graphql')
-					.send({query: query(args)});
-				res.should.have.status(200);
-				res.should.be.json;
-				test(args, res);
-			} catch (e) {
-				console.error(e);
-			}
+			let res = await graphql
+				.post('/graphql')
+				.set('Cookie', cookies)
+				.type("json")
+				.send({query: query()});
+			await res.should.have.status(200);
+			await res.should.be.json;
+			await test(res);
+			return res;
 		}));
+}
+
+async function cleanUp() {
+	let postgres = getDB(),
+		session = cookies[0].substring(cookies[0].indexOf('=') + 1,
+			cookies[0].indexOf(';')),
+		{user} = jwt.decode(session);
+	await postgres.deleteTasks(user);
+	await postgres.deleteUser(user);
+	return await stopServer();
 }
 
 describe('hooks', () => {
 	
 	before(startServer);
 	
-	after(stopServer);
+	after(cleanUp);
 	
-	describe('load data', testDate);
+	describe('check session', testSession);
 	
-	describe('graphql query', testQuery);
-	
-	describe('graphql mutation', testMutation);
-	
+	describe('graphql api', testAPI);
 });
