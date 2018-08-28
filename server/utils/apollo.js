@@ -154,6 +154,10 @@ function getApolloServer(postgres) {
 						}
 					}
 				}
+			},
+			onDisconnect: webSocket => {
+				let {remoteAddress, remotePort} = webSocket._socket;
+				console.log(`websocket disconnected from ${remoteAddress}:${remotePort}`);
 			}
 		},
 		context: ({req}) => ({...req})

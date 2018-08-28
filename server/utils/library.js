@@ -63,25 +63,29 @@ function verifySession(session) {
 
 async function authenticateUser(req, res, next) {
 	let {session} = req.cookies;
-	if (!session) {
-		let {user, token} = createUser();
-		res.cookie('session', token, {httpOnly: true});
-		const postgres = getDB();
-		await postgres.addUser(user);
-		req.user = user;
-	} else {
-		try {
-			req.user = verifySession(session);
-		} catch ({name, message}) {
-			let status = 500,
-				error = JSON.stringify({type: 'JWT_ERROR', name, message});
-			if (name === 'TokenExpiredError') {
-				status = 401;
-				error = 'UNAUTHORIZED';
+	try {
+		if (!session) {
+			let {user, token} = createUser();
+			res.cookie('session', token, {httpOnly: true});
+			const postgres = getDB();
+			console.log(`adding user ${user} with id ${await postgres.addUser(user)}`);
+			req.user = user;
+		} else {
+			try {
+				req.user = verifySession(session);
+			} catch ({name, message}) {
+				let status = 500,
+					error = JSON.stringify({type: 'JWT_ERROR', name, message});
+				if (name === 'TokenExpiredError') {
+					status = 401;
+					error = 'UNAUTHORIZED';
+				}
+				res.clearCookie('session');
+				req.authError = {status, error};
 			}
-			res.clearCookie('session');
-			req.authError = {status, error};
 		}
+	} catch (e) {
+		console.error(e);
 	}
 	next();
 }
