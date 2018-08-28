@@ -28,7 +28,7 @@ class Input extends Component {
 			onValueReturn
 		} = this.props;
 		onKeyUp && onKeyUp(e);
-		keyCode === 13 && onValueReturn && onValueReturn(value)
+		keyCode === 13 && value && onValueReturn && onValueReturn(value)
 	}
 }
 
