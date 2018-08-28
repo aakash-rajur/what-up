@@ -124,7 +124,6 @@ function resolverGenerator(postgres) {
 
 function getApolloServer(postgres) {
 	return new ApolloServer({
-		cors: false,
 		typeDefs,
 		resolvers: resolverGenerator(postgres),
 		subscriptions: {
