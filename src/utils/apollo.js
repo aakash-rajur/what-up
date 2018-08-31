@@ -18,37 +18,6 @@ import {
 	WS_URL
 } from "./constants";
 
-const wsLink = new WebSocketLink({
-	uri: WS_URL,
-	options: {
-		reconnect: true
-	}
-});
-
-export default new ApolloClient({
-	link: ApolloLink.from([
-		onError(({graphQLErrors, networkError}) => {
-			if (graphQLErrors)
-				graphQLErrors.map(({message, locations, path}) =>
-					console.log(
-						`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-					),
-				);
-			if (networkError) console.log(`[Network error]: ${JSON.stringify(networkError)}`);
-		}),
-		split(({query}) => {
-				const {kind, operation} = getMainDefinition(query);
-				return kind === 'OperationDefinition' && operation === 'subscription';
-			},
-			wsLink,
-			new HttpLink({
-				uri: API_URL,
-				credentials: 'include'
-			}))
-	]),
-	cache: new InMemoryCache()
-});
-
 export const FETCH_TASKS = gql`
     query fetchTasks($filter: String!, $timestamp: String){
         tasks(filter: $filter, timestamp: $timestamp) {
@@ -110,6 +79,52 @@ export const SESSION_CHANGED = gql`
         }
     }
 `;
+
+export default function getApolloClient() {
+	const wsLink = new WebSocketLink({
+			uri: WS_URL,
+			options: {
+				timeout: 600000,
+				inactivityTimeout: 0,
+				reconnect: true,
+				reconnectionAttempts: 3,
+				connectionCallback: err => {
+					if (err) return console.error(err);
+					return console.log(`connection established with ${WS_URL}`);
+				}
+			}
+		}),
+		httpLink = new HttpLink({
+			uri: API_URL,
+			credentials: 'include'
+		});
+	wsLink.subscriptionClient.maxConnectTimeGenerator.duration = () =>
+		wsLink.subscriptionClient.maxConnectTimeGenerator.max;
+	return new ApolloClient({
+		link: ApolloLink.from([
+			onError(
+				({graphQLErrors, networkError}) => {
+					if (graphQLErrors)
+						graphQLErrors.map(({message, locations, path}) =>
+							console.error(
+								`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+							),
+						);
+					if (networkError) console.error(`[Network error]: ${JSON.stringify(networkError)}`);
+				}
+			),
+			split(
+				({query}) => {
+					const {kind, operation} = getMainDefinition(query);
+					return kind === 'OperationDefinition' && operation === 'subscription';
+				},
+				wsLink,
+				httpLink
+			)
+		]),
+		cache: new InMemoryCache()
+	});
+}
 
 export const withTaskMutations = compose(...[{
 		mutation: CANCEL_TASK,
