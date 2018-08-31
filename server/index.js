@@ -54,9 +54,9 @@ function startServer() {
 		server = http.createServer(app);
 		apollo.installSubscriptionHandlers(server);
 		
-		app.get('/hello', async (req, res) => res.send('hello world'));
+		app.get('/', async (req, res) => res.send('hello world'));
 		
-		app.use('/', express.static(path.join(__dirname, '../build')));
+		/*app.use('/', express.static(path.join(__dirname, '../build')));*/
 		
 		server.listen(PORT, err => {
 			if (err) return reject(err);
