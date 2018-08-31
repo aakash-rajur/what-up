@@ -9,6 +9,7 @@ services:
 addons:
   postgresql: "10.4"
 before_script:
+- ps aux | grep postgres
 - psql -c 'create database travis_ci_test;' -U postgres
 script:
 - node server/setup.js
