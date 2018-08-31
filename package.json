@@ -26,7 +26,6 @@
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
     "server:test:windows": "set NODE_ENV=test&&mocha server/test/**.js -c",
     "dev": "npm-run-all -p server app",
-    "postinstall": "node server/setup.js",
     "start": "NODE_ENV=production node server",
     "test": "npm run server:test && npm run app:test",
     "test:local": "npm run server:test && npm run app:test",
