@@ -24,10 +24,13 @@
     "server": "nodemon -w server -w server/index.js server -w .env",
     "server:run": "NODE_ENV=production node server",
     "server:test": "NODE_ENV=test mocha server/test/**.js -c",
-    "server:test:window": "set NODE_ENV=test&&mocha server/test/**.js -c",
+    "server:test:windows": "set NODE_ENV=test&&mocha server/test/**.js -c",
     "dev": "npm-run-all -p server app",
-    "postinstall": "npm run app:build && node server/setup.js",
-    "start": "node server"
+    "postinstall": "node server/setup.js",
+    "start": "NODE_ENV=production node server",
+    "test": "npm run server:test && npm run app:test",
+    "test:local": "npm run server:test && npm run app:test",
+    "test:local:windows": "set CI=true&&npm run server:test:windows && npm run app:test"
   },
   "devDependencies": {
     "apollo-cache-inmemory": "^1.3.0-beta.7",
