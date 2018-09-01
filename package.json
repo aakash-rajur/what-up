@@ -4,6 +4,7 @@
   "private": true,
   "main": "server",
   "homepage": "https://aakashrajur.github.io/what-up",
+  "repository": "https://github.com/aakashRajur/what-up",
   "dependencies": {
     "apollo-server-express": "^2.0.4",
     "body-parser": "^1.18.3",
