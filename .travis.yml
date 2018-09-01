@@ -1,9 +1,6 @@
 dist: xenial
 services:
 - postgresql
-before_script:
-- ps aux | grep postgres
-- psql -c 'create database travis_ci_test;' -U postgres
 language: node_js
 node_js:
 - 10.9.0
