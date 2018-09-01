@@ -2,14 +2,5 @@ dist: xenial
 language: node_js
 node_js:
 - 10.9.0
-cache:
-  directories:
-  - node_modules
-services:
-- postgresql
-before_script:
-- ps aux | grep postgres
-- psql -c 'create database travis_ci_test;' -U postgres
 script:
-- node server/setup.js
 - npm test
