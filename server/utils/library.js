@@ -68,7 +68,7 @@ async function authenticateUser(req, res, next) {
 			let {user, token} = createUser();
 			res.cookie('session', token, {httpOnly: true});
 			const postgres = getDB();
-			console.log(`adding user ${user} with id ${await postgres.addUser(user)}`);
+			console.log(`adding user ${user} with id ${(await postgres.addUser(user)).add_user}`);
 			req.user = user;
 		} else {
 			try {

@@ -29,6 +29,7 @@ async function stopServer() {
 
 function startServer() {
 	return new Promise((resolve, reject) => {
+		console.log('starting server');
 		let apollo = null,
 			app = express(),
 			corsConfig = {

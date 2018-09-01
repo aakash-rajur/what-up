@@ -28,7 +28,7 @@
     "dev": "npm-run-all -p server app",
     "start": "NODE_ENV=production node server",
     "test": "npm run server:test && npm run app:test",
-    "test:local": "npm run server:test && npm run app:test",
+    "test:local": "CI=true npm run server:test && npm run app:test",
     "test:local:windows": "set CI=true&&npm run server:test:windows && npm run app:test"
   },
   "devDependencies": {
