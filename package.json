@@ -26,7 +26,7 @@
     "server:test": "mocha server/test/**.js -c",
     "server:test:windows": "mocha server/test/**.js -c",
     "dev": "npm-run-all -p server app",
-    "postinstall":"if-env NODE_ENV=production && npm run app:build",
+    "postinstall":"if-env NODE_ENV=production && npm run app:build || echo 'wont build frontend because not production env'",
     "start": "node server",
     "test": "npm run server:test && npm run app:test",
     "test:local": "CI=true NODE_ENV=test npm run server:test && npm run app:test",
