@@ -87,11 +87,7 @@ export default function getApolloClient() {
 				timeout: 600000,
 				inactivityTimeout: 0,
 				reconnect: true,
-				reconnectionAttempts: 3,
-				connectionCallback: err => {
-					if (err) return console.error(err);
-					return console.log(`connection established with ${WS_URL}`);
-				}
+				reconnectionAttempts: 3
 			}
 		}),
 		httpLink = new HttpLink({
