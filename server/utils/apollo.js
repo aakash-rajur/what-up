@@ -84,31 +84,31 @@ function resolverGenerator(postgres) {
 				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
 				let result = await postgres.addTask(context.user, description);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
-				return result;
+				return result.add_task;
 			},
 			remove: async (root, {id}, context) => {
 				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
 				let result = await postgres.updateTask(id, TASK_CANCELLED);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
-				return result;
+				return result.update_task;
 			},
 			edit: async (root, {id, description}, context) => {
 				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
 				let result = await postgres.editTask(id, description);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
-				return result;
+				return result.edit_task;
 			},
 			update: async (root, {id, status}, context) => {
 				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
 				let result = await postgres.updateTask(id, status);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
-				return result;
+				return result.update_task;
 			},
 			updateAll: async (root, {filter, status}, context) => {
 				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
 				let result = await postgres.updateAllTasks(context.user, filter, status);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
-				return result;
+				return parseInt(result.update_all_tasks, 10);
 			}
 		},
 		Subscription: {
@@ -142,7 +142,9 @@ function getApolloServer(postgres) {
 							})
 						});
 					});
-				} catch ({name, message}) {
+				} catch (err) {
+					console.error(err);
+					const {name} = err;
 					if (name === 'TokenExpiredError') {
 						try {
 							user = jwt.decode(session).user;
