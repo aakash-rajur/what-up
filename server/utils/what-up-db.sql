@@ -130,8 +130,8 @@ begin
   return query select t.id, t.description, t.status, t.created, t.updated
                from tasks t
                where t.uid = (select u.id from users u where u.hash = user_hash)
-                       and task_status = 'ALL'
-                  or t.status = task_status
+                       and (task_status = 'ALL'
+                  or t.status = task_status)
                order by created desc;
 end;
 $$
