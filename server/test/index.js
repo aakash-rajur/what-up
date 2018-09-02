@@ -8,8 +8,8 @@ const jwt = require('jsonwebtoken');
 const {getDB} = require('../utils/library');
 
 chai.use(chaiHttp);
-const SERVER_URL = `http:\\\\localhost:${process.env.SERVER_PORT}`;
-const API_URL = process.env.REACT_APP_API_URL;
+const SERVER_URL = `http://localhost:${process.env.SERVER_PORT}`;
+const API_URL = `${SERVER_URL}/graphql`;
 const graphql = chai.request(API_URL);
 let cookies = null;
 
