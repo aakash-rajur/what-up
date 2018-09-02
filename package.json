@@ -14,6 +14,7 @@
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "graphql": "^0.13.2",
+    "if-env": "^1.0.4",
     "jsonwebtoken": "^8.3.0",
     "morgan": "^1.9.0",
     "pg": "^7.4.3"
@@ -27,6 +28,7 @@
     "server:test": "mocha server/test/**.js -c",
     "server:test:windows": "mocha server/test/**.js -c",
     "dev": "npm-run-all -p server app",
+    "postinstall": "if-env NODE_ENV=production && node server/setup.js || 'wont setup db since not production env'",
     "start": "node server",
     "test": "npm run server:test && npm run app:test",
     "test:local": "CI=true NODE_ENV=test npm run server:test && npm run app:test",
