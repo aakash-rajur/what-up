@@ -28,7 +28,7 @@
     "server:test": "mocha server/test/**.js -c",
     "server:test:windows": "mocha server/test/**.js -c",
     "dev": "npm-run-all -p server app",
-    "postinstall": "if-env NODE_ENV=production && node server/setup.js || 'wont setup db since not production env'",
+    "postinstall": "if-env NODE_ENV=production && node server/setup.js || echo 'wont setup db since not production env'",
     "start": "node server",
     "test": "npm run server:test && npm run app:test",
     "test:local": "CI=true NODE_ENV=test npm run server:test && npm run app:test",
