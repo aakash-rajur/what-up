@@ -6,6 +6,18 @@ before_script:
 language: node_js
 node_js:
 - 10.9.0
+cache:
+  directories:
+  - node_modules
 script:
 - node server/setup.js
 - npm test
+before_deploy:
+  - npm run app:build
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: build
+  on:
+    branch: master
