@@ -1,13 +1,11 @@
 const {ApolloServer, gql} = require('apollo-server-express');
-const cookie = require('cookie');
-const jwt = require('jsonwebtoken');
 const getPublisher = require('./publisher');
 const publisher = getPublisher();
 const {
 	TASKS_CHANGED,
 	TASK_CANCELLED,
-	SESSION_CHANGE,
-	verifySession,
+	ON_NOTIFICATION,
+	createSession,
 	getStats
 } = require('./library');
 
@@ -26,13 +24,18 @@ const typeDefs = gql`
         updated: String!
     }
 
-    type Event {
+    type Stat {
         timestamp: String!,
         CREATED: Int,
         COMPLETED: Int,
         CANCELLED: Int,
-        ALL: Int,
-        additional: String
+        ALL: Int
+    }
+
+    type Notification {
+        timestamp: String!,
+        action: String!,
+        data: String!
     }
 
     type Query {
@@ -50,15 +53,16 @@ const typeDefs = gql`
     }
 
     type Subscription {
-        TASKS_CHANGED: Event!,
-        SESSION_CHANGE: Event!
+        TASKS_CHANGED: Stat!,
+        ON_NOTIFICATION: Notification!
     }
 `;
 
 function hasSessionExpired(context) {
 	if (!context.user) {
-		publisher.notify(SESSION_CHANGE, {
-			additional: JSON.stringify({
+		publisher.notify(ON_NOTIFICATION, {
+			action: 'SESSION_EXPIRED',
+			data: JSON.stringify({
 				message: 'Session Expired. Please Refresh!'
 			})
 		});
@@ -81,31 +85,31 @@ function resolverGenerator(postgres) {
 		Mutation: {
 			hello: (root, {name}) => `not hello ${name || 'world'}`,
 			add: async (root, {description}, context) => {
-				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
+				if (hasSessionExpired(context)) throw new Error('UNAUTHORIZED');
 				let result = await postgres.addTask(context.user, description);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
 				return result.add_task;
 			},
 			remove: async (root, {id}, context) => {
-				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
+				if (hasSessionExpired(context)) throw new Error('UNAUTHORIZED');
 				let result = await postgres.updateTask(id, TASK_CANCELLED);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
 				return result.update_task;
 			},
 			edit: async (root, {id, description}, context) => {
-				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
+				if (hasSessionExpired(context)) throw new Error('UNAUTHORIZED');
 				let result = await postgres.editTask(id, description);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
 				return result.edit_task;
 			},
 			update: async (root, {id, status}, context) => {
-				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
+				if (hasSessionExpired(context)) throw new Error('UNAUTHORIZED');
 				let result = await postgres.updateTask(id, status);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
 				return result.update_task;
 			},
 			updateAll: async (root, {filter, status}, context) => {
-				if (hasSessionExpired(context)) return 'UNAUTHORIZED';
+				if (hasSessionExpired(context)) throw new Error('UNAUTHORIZED');
 				let result = await postgres.updateAllTasks(context.user, filter, status);
 				publisher.notify(TASKS_CHANGED, await getStats(context.user));
 				return parseInt(result.update_all_tasks, 10);
@@ -115,8 +119,8 @@ function resolverGenerator(postgres) {
 			[TASKS_CHANGED]: {
 				subscribe: () => publisher.asyncIterator([TASKS_CHANGED])
 			},
-			[SESSION_CHANGE]: {
-				subscribe: () => publisher.asyncIterator([SESSION_CHANGE])
+			[ON_NOTIFICATION]: {
+				subscribe: () => publisher.asyncIterator([ON_NOTIFICATION])
 			}
 		}
 	}
@@ -130,32 +134,7 @@ function getApolloServer(postgres) {
 			onConnect: async (connectionParams, webSocket) => {
 				let {remoteAddress, remotePort} = webSocket._socket;
 				console.log(`websocket connected to ${remoteAddress}:${remotePort}`);
-				let {session} = cookie.parse(webSocket.upgradeReq.headers.cookie),
-					user = null;
-				try {
-					user = verifySession(session);
-					if (user) setImmediate(async () => {
-						publisher.notify(TASKS_CHANGED, await getStats(user));
-						publisher.notify(SESSION_CHANGE, {
-							additional: JSON.stringify({
-								message: `Your UserID is ${user}`
-							})
-						});
-					});
-				} catch (err) {
-					console.error(err);
-					const {name} = err;
-					if (name === 'TokenExpiredError') {
-						try {
-							user = jwt.decode(session).user;
-							console.log(`nuking all data belonging to ${user}`);
-							await postgres.deleteTasks(user);
-							await postgres.deleteUser(user);
-						} catch (e) {
-							console.error(e);
-						}
-					}
-				}
+				createSession(webSocket.upgradeReq.headers.cookie, publisher);
 			},
 			onDisconnect: webSocket => {
 				let {remoteAddress, remotePort} = webSocket._socket;
