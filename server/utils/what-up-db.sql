@@ -165,3 +165,15 @@ begin
 end;
 $$
 language plpgsql;
+
+create or replace function does_user_exist(user_hash text)
+  returns boolean as $$
+declare
+  user_exists boolean := false;
+begin
+  select exists(select 1 from users where hash = user_hash)
+      into user_exists;
+  return user_exists;
+end;
+$$
+language plpgsql;
