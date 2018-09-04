@@ -5,12 +5,14 @@ const {
 	REACT_APP_TASK_ALL: TASK_ALL,
 	REACT_APP_TASKS_CHANGED: TASKS_CHANGED,
 	REACT_APP_SESSION_CHANGE: SESSION_CHANGE,
+	REACT_APP_ON_NOTIFICATION: ON_NOTIFICATION,
 	SESSION_SECRET,
 	SESSION_TIMEOUT,
 	PG_URL,
 	DATABASE_URL
 } = process.env;
 const crypto = require('crypto');
+const cookieParser = require('cookie');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./db');
 
@@ -63,31 +65,77 @@ function verifySession(session) {
 
 async function authenticateUser(req, res, next) {
 	let {session} = req.cookies;
+	if (!session) return next();
 	try {
-		if (!session) {
-			let {user, token} = createUser();
-			res.cookie('session', token, {httpOnly: false});
-			const postgres = getDB();
-			console.log(`adding user ${user} with id ${(await postgres.addUser(user)).add_user}`);
+		let user = verifySession(session);
+		const postgres = getDB();
+		if ((await postgres.doesUserExist(user)).does_user_exist)
 			req.user = user;
-		} else {
-			try {
-				req.user = verifySession(session);
-			} catch ({name, message}) {
-				let status = 500,
-					error = JSON.stringify({type: 'JWT_ERROR', name, message});
-				if (name === 'TokenExpiredError') {
-					status = 401;
-					error = 'UNAUTHORIZED';
-				}
-				res.clearCookie('session');
-				req.authError = {status, error};
-			}
-		}
 	} catch (e) {
 		console.error(e);
 	}
 	next();
+}
+
+async function createSession(cookie = '', publisher) {
+	const postgres = getDB();
+	let {session} = cookieParser.parse(cookie), user = null;
+	if (session) {
+		let shouldRefresh = false;
+		try {
+			user = verifySession(session);
+			if (!user || !((await postgres.doesUserExist(user)).does_user_exist))
+				shouldRefresh = true;
+			else setImmediate(async () => {
+				publisher.notify(ON_NOTIFICATION, {
+					action: 'SESSION_RESTORED',
+					data: JSON.stringify({
+						message: `Your UserID is ${user}`
+					})
+				});
+				publisher.notify(TASKS_CHANGED, await getStats(user));
+			});
+		} catch (err) {
+			const {name} = err;
+			shouldRefresh = name === 'TokenExpiredError';
+		}
+		
+		if (shouldRefresh) {
+			if (session) {
+				try {
+					user = jwt.decode(session).user;
+					if ((await postgres.doesUserExist(user)).does_user_exist) {
+						console.log(`attempting to nuke all data belonging to ${user}`);
+						await postgres.deleteTasks(user);
+						await postgres.deleteUser(user);
+					}
+				} catch (e) {
+					console.error(e);
+				}
+			}
+			setImmediate(() =>
+				publisher.notify(ON_NOTIFICATION, {
+					action: 'SESSION_EXPIRED',
+					data: JSON.stringify({
+						message: 'Session Expired. Please Refresh!'
+					})
+				}));
+		}
+	} else {
+		let {user, token} = createUser(),
+			{add_user: userID} = await postgres.addUser(user);
+		console.log(`adding user ${user} with id ${userID}`);
+		setImmediate(async () => {
+			publisher.notify(ON_NOTIFICATION, {
+				action: 'NEW_SESSION',
+				data: JSON.stringify({
+					token,
+					message: `Your UserID is ${user}`
+				})
+			});
+			publisher.notify(TASKS_CHANGED, await getStats(user));
+		});
+	}
 }
 
 module.exports = {
@@ -97,9 +145,10 @@ module.exports = {
 	TASK_ALL,
 	TASKS_CHANGED,
 	SESSION_CHANGE,
-	verifySession,
+	ON_NOTIFICATION,
 	getStats,
 	authenticateUser,
 	getDB,
-	getTimestamp
+	getTimestamp,
+	createSession
 };
