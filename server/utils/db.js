@@ -79,6 +79,11 @@ class Postgres {
 		return formatQuery(await this.pool.query(`select * from get_stats('${hash}')`), false);
 	}
 	
+	async doesUserExist(hash){
+		this.checkConnection();
+		return formatQuery(await this.pool.query(`select * from does_user_exist('${hash}')`));
+	}
+	
 	query(...args) {
 		return this.pool.query(...args);
 	}
