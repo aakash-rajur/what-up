@@ -1,13 +1,13 @@
 import React, {Component, Fragment} from 'react';
-import {withSessionAndTaskSubscription} from "../../utils/apollo";
+import {withNotificationAndTaskSubscription} from "../../utils/apollo";
 import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "../../utils/constants";
 import {FILTER_BUTTON_TEMPLATE} from "../../utils/library";
 import FilterButton from "../FilterButton/FilterButton";
 import Footer from "../Footer/Footer";
 import NewTask from "../NewTask/NewTask";
+import SnackBar from "../SnackBar/SnackBar";
 import TaskList from "../TaskList/TaskList";
 import UpdateAll from "../UpdateAll/UpdateAll";
-import SnackBar from "../SnackBar/SnackBar";
 import './App.css';
 
 export class App extends Component {
@@ -24,13 +24,26 @@ export class App extends Component {
 		};
 	}
 	
+	componentDidUpdate(prevProps) {
+		if (prevProps.notification !== this.props.notification) {
+			let {action, data} = this.props.notification;
+			if (action === 'NEW_SESSION') {
+				let {token} = data;
+				document.cookie = `session=${token}`;
+			} else if (action === 'SESSION_EXPIRED') {
+				document.cookie = `session=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+			}
+		}
+	}
+	
 	render() {
 		let {
 			filter,
 			newTask
 		} = this.state, {
 			timestamp = 'NONE',
-			session
+			stats,
+			notification: {data: prompt}
 		} = this.props;
 		return (
 			<Fragment>
@@ -47,7 +60,7 @@ export class App extends Component {
 					<div className="filter-container">
 						{FILTER_BUTTON_TEMPLATE.map((type, index) => (
 							<FilterButton key={index} {...type}
-							              stat={this.props[type.filter]}
+							              stat={stats[type.filter]}
 							              active={type.filter === filter}
 							              onClick={this.onFilterChange}/>
 						))}
@@ -56,7 +69,8 @@ export class App extends Component {
 				<TaskList filter={filter} timestamp={timestamp}/>
 				<Footer/>
 				<SnackBar timeout={2000}
-				          message={session && session.message}/>
+				          message={prompt && prompt.message}
+				/>
 			</Fragment>
 		);
 	}
@@ -77,7 +91,7 @@ export class App extends Component {
 		const {
 			[TASK_ALL]: total,
 			[TASK_COMPLETED]: completed
-		} = this.props, {
+		} = this.props.stats, {
 			filter
 		} = this.state;
 		if (filter === TASK_ALL)
@@ -95,4 +109,4 @@ export class App extends Component {
 	}
 }
 
-export default withSessionAndTaskSubscription(App);
+export default withNotificationAndTaskSubscription(App);
