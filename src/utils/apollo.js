@@ -9,7 +9,7 @@ import gql from 'graphql-tag';
 import {compose, graphql} from 'react-apollo';
 import {
 	API_URL,
-	SESSION_CHANGE,
+	ON_NOTIFICATION,
 	TASK_ALL,
 	TASK_CANCELLED,
 	TASK_COMPLETED,
@@ -72,10 +72,12 @@ export const TASKS_UPDATED = gql`
     }
 `;
 
-export const SESSION_CHANGED = gql`
-    subscription onSessionChanged {
-        SESSION_CHANGE {
-            additional
+export const ON_SERVER_NOTIFICATION = gql`
+    subscription onServerNotification {
+        ON_NOTIFICATION {
+            timestamp,
+            action,
+            data
         }
     }
 `;
@@ -177,19 +179,35 @@ const defaultTaskUpdated = {
 	}
 };
 
-const defaultSession = {
-	[SESSION_CHANGE]: null
+const defaultNotifcation = {
+	[ON_NOTIFICATION]: {
+		timestamp: "0",
+		action: 'DEFAULT',
+		data: null
+	}
 };
 
-export const withSessionAndTaskSubscription = compose(
-	graphql(SESSION_CHANGED, {
-		props: ({data: {[SESSION_CHANGE]: session} = defaultSession}) => ({
-			session: session && JSON.parse(session.additional)
-		}),
+export const withNotificationAndTaskSubscription = compose(
+	graphql(ON_SERVER_NOTIFICATION, {
+		props: ({data: {[ON_NOTIFICATION]: notification = defaultNotifcation}}) => {
+			const {data = null, timestamp, ...rest} = notification || {};
+			return {
+				notification:{
+					...rest,
+					data: data && JSON.parse(data)
+				},
+				timestamp
+			};
+		},
 		options: () => ({shouldResubscribe: true})
 	}),
 	graphql(TASKS_UPDATED, {
-		props: ({data: {[TASKS_CHANGED]: stats} = defaultTaskUpdated}) => ({...stats}),
+		props: ({data: {[TASKS_CHANGED]: stats = defaultTaskUpdated}}) => {
+			return {
+				stats,
+				timestamp: stats.timestamp
+			};
+		},
 		options: () => ({shouldResubscribe: true})
 	}),
 );
