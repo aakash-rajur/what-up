@@ -71,6 +71,7 @@ exports[`App component match snapshot with non-empty list 1`] = `
   />
   <Footer />
   <SnackBar
+    message=""
     timeout={2000}
   />
 </Fragment>
