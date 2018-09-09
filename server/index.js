@@ -19,16 +19,16 @@ let server = null, postgres = null;
 
 async function stopServer() {
 	if (!server) return;
-	console.log('shutting down server');
+	console.info('shutting down server');
 	postgres && await postgres.disconnect();
 	server.close();
-	console.log('server shut down');
+	console.info('server shut down');
 	process.exit(0);
 }
 
 function startServer() {
 	return new Promise((resolve, reject) => {
-		console.log('starting server');
+		console.info('starting server');
 		let apollo = null,
 			app = express(),
 			corsConfig = {

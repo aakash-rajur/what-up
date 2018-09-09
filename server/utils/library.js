@@ -90,10 +90,11 @@ async function createSession(cookie = '', publisher) {
 				publisher.notify(ON_NOTIFICATION, {
 					action: 'SESSION_RESTORED',
 					data: JSON.stringify({
-						message: `Your UserID is ${user}`
+						message: `Your UserID is ${user}`,
+						source: 'WS'
 					})
 				});
-				publisher.notify(TASKS_CHANGED, await getStats(user));
+				publisher.notify(TASKS_CHANGED, {...await getStats(user), source: 'WS'});
 			});
 		} catch (err) {
 			const {name} = err;
@@ -105,7 +106,7 @@ async function createSession(cookie = '', publisher) {
 				try {
 					user = jwt.decode(session).user;
 					if ((await postgres.doesUserExist(user)).does_user_exist) {
-						console.log(`attempting to nuke all data belonging to ${user}`);
+						console.info(`attempting to nuke all data belonging to ${user}`);
 						await postgres.deleteTasks(user);
 						await postgres.deleteUser(user);
 					}
@@ -117,23 +118,25 @@ async function createSession(cookie = '', publisher) {
 				publisher.notify(ON_NOTIFICATION, {
 					action: 'SESSION_EXPIRED',
 					data: JSON.stringify({
-						message: 'Session Expired. Please Refresh!'
+						message: 'Session Expired. Please Refresh!',
+						source: 'WS'
 					})
 				}));
 		}
 	} else {
 		let {user, token} = createUser(),
 			{add_user: userID} = await postgres.addUser(user);
-		console.log(`adding user ${user} with id ${userID}`);
+		console.info(`adding user ${user} with id ${userID}`);
 		setImmediate(async () => {
 			publisher.notify(ON_NOTIFICATION, {
 				action: 'NEW_SESSION',
 				data: JSON.stringify({
 					token,
-					message: `Your UserID is ${user}`
+					message: `Your UserID is ${user}`,
+					source: 'WS'
 				})
 			});
-			publisher.notify(TASKS_CHANGED, await getStats(user));
+			publisher.notify(TASKS_CHANGED, {...await getStats(user), source: 'WS'});
 		});
 	}
 }

@@ -19,4 +19,4 @@ async function main() {
 	return "DONE_RENDERING";
 }
 
-main().then(console.log).catch(console.error);
+main().then(console.info).catch(console.error);

@@ -7,7 +7,7 @@ const postgres = getDB();
 async function main() {
 	try {
 		let sql = fs.readFileSync(path.join(__dirname, 'utils', 'what-up-db.sql'), 'utf-8');
-		console.log(await postgres.query(sql));
+		console.info(await postgres.query(sql));
 		return 'DB Setup Complete';
 	} catch (e) {
 		console.error(e);

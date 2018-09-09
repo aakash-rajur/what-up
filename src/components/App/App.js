@@ -13,6 +13,7 @@ import './App.css';
 export class App extends Component {
 	constructor(props) {
 		super(props);
+		this.onWSConnected = false;
 		this.onFilterChange = this.onFilterChange.bind(this);
 		this.onNewTaskChange = this.onNewTaskChange.bind(this);
 		this.clearNewTaskInput = this.clearNewTaskInput.bind(this);
@@ -26,12 +27,14 @@ export class App extends Component {
 	
 	componentDidUpdate(prevProps) {
 		if (prevProps.notification !== this.props.notification) {
-			let {action, data} = this.props.notification;
+			const {action, data} = this.props.notification;
+			if (!this.onWSConnected && data.source === 'WS') this.onWSConnected = true;
 			if (action === 'NEW_SESSION') {
-				let {token} = data;
+				const {token} = data;
 				document.cookie = `session=${token}`;
 			} else if (action === 'SESSION_EXPIRED') {
-				document.cookie = `session=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+				if (this.onWSConnected)
+					document.cookie = `session=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
 			}
 		}
 	}

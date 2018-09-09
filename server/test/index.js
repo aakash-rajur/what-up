@@ -40,7 +40,7 @@ let client = null,
 	cookies = null;
 
 async function setupServer() {
-	console.log(await startServer());
+	console.info(await startServer());
 	
 	const wsLink = new WebSocketLink({
 			uri: WS_URL,

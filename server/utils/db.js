@@ -91,7 +91,7 @@ class Postgres {
 
 function getDB(uri) {
 	if (!instance){
-		console.log('environment', NODE_ENV);
+		console.info('environment', NODE_ENV);
 		instance = new Postgres(uri);
 	}
 	return instance;

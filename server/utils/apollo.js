@@ -63,7 +63,8 @@ function hasSessionExpired(context) {
 		publisher.notify(ON_NOTIFICATION, {
 			action: 'SESSION_EXPIRED',
 			data: JSON.stringify({
-				message: 'Session Expired. Please Refresh!'
+				message: 'Session Expired. Please Refresh!',
+				srouce:'XHR'
 			})
 		});
 		return true;
@@ -133,12 +134,12 @@ function getApolloServer(postgres) {
 		subscriptions: {
 			onConnect: async (connectionParams, webSocket) => {
 				let {remoteAddress, remotePort} = webSocket._socket;
-				console.log(`websocket connected to ${remoteAddress}:${remotePort}`);
+				console.info(`websocket connected to ${remoteAddress}:${remotePort}`);
 				createSession(webSocket.upgradeReq.headers.cookie, publisher);
 			},
 			onDisconnect: webSocket => {
 				let {remoteAddress, remotePort} = webSocket._socket;
-				console.log(`websocket disconnected from ${remoteAddress}:${remotePort}`);
+				console.info(`websocket disconnected from ${remoteAddress}:${remotePort}`);
 			}
 		},
 		context: ({req}) => ({...req})
