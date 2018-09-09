@@ -42,8 +42,7 @@ export class App extends Component {
 			newTask
 		} = this.state, {
 			timestamp = 'NONE',
-			stats,
-			notification: {data: prompt}
+			stats
 		} = this.props;
 		return (
 			<Fragment>
@@ -60,7 +59,7 @@ export class App extends Component {
 					<div className="filter-container">
 						{FILTER_BUTTON_TEMPLATE.map((type, index) => (
 							<FilterButton key={index} {...type}
-							              stat={stats[type.filter]}
+							              stat={stats ? stats[type.filter] : 0}
 							              active={type.filter === filter}
 							              onClick={this.onFilterChange}/>
 						))}
@@ -68,11 +67,22 @@ export class App extends Component {
 	        </span>
 				<TaskList filter={filter} timestamp={timestamp}/>
 				<Footer/>
-				<SnackBar timeout={2000}
-				          message={prompt && prompt.message}
-				/>
+				{this.renderNotification()}
 			</Fragment>
 		);
+	}
+	
+	renderNotification() {
+		const {
+				notification
+			} = this.props,
+			message = (notification && notification.data.message) || '';
+		return (
+			<SnackBar
+				timeout={2000}
+				message={message}
+			/>
+		)
 	}
 	
 	onNewTaskChange({target: {value}}) {
@@ -88,6 +98,8 @@ export class App extends Component {
 	}
 	
 	getNextUpdateALlStatus() {
+		if (!this.props || !this.props.stats)
+			return TASK_CREATED;
 		const {
 			[TASK_ALL]: total,
 			[TASK_COMPLETED]: completed
