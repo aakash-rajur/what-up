@@ -1,27 +1,130 @@
 require('dotenv').config();
-const {startServer, stopServer} = require('../index');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+chai.use(chaiHttp);
 const {expect} = chai;
 const should = chai.should();
+const SERVER_HOST = `localhost:${process.env.SERVER_PORT}`;
+const API_URL = `http://${SERVER_HOST}/graphql`;
+const WS_URL = `ws://${SERVER_HOST}/graphql`;
+const graphql = chai.request(API_URL);
+
+const {ApolloClient} = require("apollo-client");
+const WebSocket = require('ws');
+const {split} = require("apollo-link");
+const {onError} = require("apollo-link-error");
+const {HttpLink} = require("apollo-link-http");
+const {WebSocketLink} = require('apollo-link-ws');
+const {getMainDefinition} = require("apollo-utilities");
+const {InMemoryCache} = require("apollo-cache-inmemory");
+const {ApolloLink} = require("apollo-link");
+const gql = require('graphql-tag');
+const fetch = require("node-fetch");
+
 const jwt = require('jsonwebtoken');
+const {startServer, stopServer} = require('../index');
 const {getDB} = require('../utils/library');
 
-chai.use(chaiHttp);
-const SERVER_URL = `http://localhost:${process.env.SERVER_PORT}`;
-const API_URL = `${SERVER_URL}/graphql`;
-const graphql = chai.request(API_URL);
-let cookies = null;
+const ON_SERVER_NOTIFICATION = gql`
+    subscription onServerNotification {
+        ON_NOTIFICATION {
+            timestamp,
+            action,
+            data
+        }
+    }
+`;
 
-function testSession() {
-	it('api should create a session', async () => {
-		let res = await chai.request(SERVER_URL).get('/');
-		await res.should.have.status(200);
-		await expect(res.text).to.equal('hello world');
-		await res.headers['set-cookie'].should.be.an('array');
-		cookies = res.headers['set-cookie'];
-		return res;
+let client = null,
+	session = null,
+	cookies = null;
+
+async function setupServer() {
+	console.log(await startServer());
+	
+	const wsLink = new WebSocketLink({
+			uri: WS_URL,
+			options: {
+				timeout: 600000,
+				inactivityTimeout: 0,
+				reconnect: true,
+				reconnectionAttempts: 3
+			},
+			webSocketImpl: WebSocket
+		}),
+		httpLink = new HttpLink({
+			uri: API_URL,
+			credentials: 'include',
+			fetch
+		});
+	
+	wsLink.subscriptionClient.maxConnectTimeGenerator.duration = () =>
+		wsLink.subscriptionClient.maxConnectTimeGenerator.max;
+	
+	client = new ApolloClient({
+		link: ApolloLink.from([
+			onError(
+				({graphQLErrors, networkError}) => {
+					if (graphQLErrors)
+						graphQLErrors.map(({message, locations, path}) =>
+							console.error(
+								`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+							),
+						);
+					if (networkError) console.error(`[Network error]: ${JSON.stringify(networkError)}`);
+				}
+			),
+			split(
+				({query}) => {
+					const {kind, operation} = getMainDefinition(query);
+					return kind === 'OperationDefinition' && operation === 'subscription';
+				},
+				wsLink,
+				httpLink
+			)
+		]),
+		cache: new InMemoryCache()
 	});
+	
+	
+	let notification = await new Promise((resolve, reject) => {
+		client.subscribe({
+			query: ON_SERVER_NOTIFICATION
+		}).subscribe({
+			next: resolve,
+			error: reject
+		})
+	});
+	
+	const {
+		data: {
+			ON_NOTIFICATION: {
+				timestamp,
+				action,
+				data
+			}
+		}
+	} = notification;
+	
+	if (!timestamp || !action || !data || action !== 'NEW_SESSION')
+		return Promise.reject('session object is invalid!');
+	const {token, message} = JSON.parse(data);
+	session = {
+		timestamp,
+		token,
+		message
+	};
+	console.info(session.message);
+	cookies = [`session=${token}`];
+}
+
+async function cleanUp() {
+	if (!session) return Promise.reject(`session doesn't exist`);
+	let postgres = getDB(),
+		{user} = jwt.decode(session.token);
+	await postgres.deleteTasks(user);
+	await postgres.deleteUser(user);
+	return await stopServer();
 }
 
 function testAPI() {
@@ -132,23 +235,18 @@ function testAPI() {
 		}));
 }
 
-async function cleanUp() {
-	let postgres = getDB(),
-		session = cookies[0].substring(cookies[0].indexOf('=') + 1,
-			cookies[0].indexOf(';')),
-		{user} = jwt.decode(session);
-	await postgres.deleteTasks(user);
-	await postgres.deleteUser(user);
-	return await stopServer();
-}
-
-describe('hooks', () => {
+describe('GraphQL tests', () => {
 	
-	before(startServer);
+	before(setupServer);
 	
 	after(cleanUp);
 	
-	describe('check session', testSession);
+	it('hello test world', () => {
+		return new Promise(resolve =>
+			setTimeout(resolve, 1500, 'setup complete')
+		);
+	});
+	
 	
 	describe('graphql api', testAPI);
 });
