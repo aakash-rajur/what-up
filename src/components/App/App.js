@@ -76,7 +76,7 @@ export class App extends Component {
 		const {
 				notification
 			} = this.props,
-			message = (notification && notification.data.message) || '';
+			message = (notification && notification.data && notification.data.message) || '';
 		return (
 			<SnackBar
 				timeout={2000}
