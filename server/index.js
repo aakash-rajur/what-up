@@ -49,7 +49,7 @@ function startServer() {
 		
 		app.use(cors(corsConfig));
 		app.use(cookieParser());
-		app.options(cors(corsConfig));
+		app.options('*', cors(corsConfig));
 		app.use('*', authenticateUser);
 		apollo.applyMiddleware({cors: corsConfig, app});
 		
