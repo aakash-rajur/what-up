@@ -59,6 +59,7 @@ const typeDefs = gql`
 `;
 
 function hasSessionExpired(context) {
+	if (!context.connection) return true;
 	if (!context.user) {
 		publisher.notify(ON_NOTIFICATION, {
 			action: 'SESSION_EXPIRED',

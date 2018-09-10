@@ -64,7 +64,9 @@ function verifySession(session) {
 }
 
 async function authenticateUser(req, res, next) {
-	let {session} = req.cookies;
+	let {session, connection = false} = req.cookies;
+	req.connection = connection;
+	console.log(req.cookies);
 	if (!session) return next();
 	try {
 		let user = verifySession(session);
