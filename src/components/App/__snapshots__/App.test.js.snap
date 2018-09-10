@@ -67,7 +67,7 @@ exports[`App component match snapshot with non-empty list 1`] = `
   </span>
   <Apollo(TaskList)
     filter="ALL"
-    timestamp="NONE"
+    timestamp="0"
   />
   <Footer />
   <SnackBar
