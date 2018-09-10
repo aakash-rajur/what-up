@@ -33,13 +33,14 @@ function startServer() {
 			app = express(),
 			corsConfig = {
 				origin: FRONTEND_URL.split(','),
-				credentials: true
+				credentials: true,
+				optionsSuccessStatus: 200
 			};
 		
 		postgres = getDB();
 		apollo = getApolloServer(postgres);
 		
-		NODE_ENV === 'production' && app.use(morgan('combined'));
+		//NODE_ENV === 'production' && app.use(morgan('combined'));
 		if (NODE_ENV === 'production') {
 			process.on('SIGINT', stopServer);
 			process.on('SIGUSR1', stopServer);
@@ -48,6 +49,7 @@ function startServer() {
 		
 		app.use(cors(corsConfig));
 		app.use(cookieParser());
+		app.options(cors(corsConfig));
 		app.use('*', authenticateUser);
 		apollo.applyMiddleware({cors: corsConfig, app});
 		
