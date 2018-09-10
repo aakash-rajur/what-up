@@ -169,31 +169,29 @@ export const withUpdateAll = graphql(UPDATE_ALL_TASKS, {
 	options: ({filter, nextStatus}) => ({variables: {filter, status: nextStatus}})
 });
 
-const defaultTaskUpdated = {
-	[TASKS_CHANGED]: {
-		timestamp: "0",
-		[TASK_ALL]: 0,
-		[TASK_CANCELLED]: 0,
-		[TASK_COMPLETED]: 0,
-		[TASK_CREATED]: 0
-	}
+export const defaultTaskUpdated = {
+	timestamp: "0",
+	[TASK_ALL]: 0,
+	[TASK_CANCELLED]: 0,
+	[TASK_COMPLETED]: 0,
+	[TASK_CREATED]: 0
 };
 
-const defaultNotifcation = {
-	[ON_NOTIFICATION]: {
-		timestamp: "0",
-		action: 'DEFAULT',
-		data: null
-	}
+const defaultNotification = {
+	timestamp: "0",
+	action: 'DEFAULT',
+	data: null
 };
 
 export const withNotificationAndTaskSubscription = compose(
 	graphql(ON_SERVER_NOTIFICATION, {
-		props: ({data: {[ON_NOTIFICATION]: notification = defaultNotifcation}}) => {
+		props: ({data: {[ON_NOTIFICATION]: notification = defaultNotification}}) => {
 			const {data = null, timestamp, ...rest} = notification || {};
+			console.log(`notification ${timestamp}`, notification);
 			return {
-				notification:{
+				notification: {
 					...rest,
+					timestamp,
 					data: data && JSON.parse(data)
 				},
 				timestamp
@@ -203,6 +201,7 @@ export const withNotificationAndTaskSubscription = compose(
 	}),
 	graphql(TASKS_UPDATED, {
 		props: ({data: {[TASKS_CHANGED]: stats = defaultTaskUpdated}}) => {
+			console.log(`stat ${stats.timestamp}`, stats);
 			return {
 				stats,
 				timestamp: stats.timestamp

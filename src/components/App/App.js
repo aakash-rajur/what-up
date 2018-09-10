@@ -1,5 +1,6 @@
+import PropTypes from 'prop-types';
 import React, {Component, Fragment} from 'react';
-import {withNotificationAndTaskSubscription} from "../../utils/apollo";
+import {defaultTaskUpdated, withNotificationAndTaskSubscription} from "../../utils/apollo";
 import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "../../utils/constants";
 import {FILTER_BUTTON_TEMPLATE} from "../../utils/library";
 import FilterButton from "../FilterButton/FilterButton";
@@ -11,16 +12,37 @@ import UpdateAll from "../UpdateAll/UpdateAll";
 import './App.css';
 
 export class App extends Component {
+	static propTypes = {
+		timestamp: PropTypes.string,
+		stats: PropTypes.shape({
+			[TASK_ALL]: PropTypes.number,
+			[TASK_CANCELLED]: PropTypes.number,
+			[TASK_COMPLETED]: PropTypes.number,
+			[TASK_CREATED]: PropTypes.number
+		}),
+		notification: PropTypes.shape({
+			action: PropTypes.string,
+			data: PropTypes.any
+		})
+	};
+	
+	static defaultProps = {
+		timestamp: '0',
+		stats: {...defaultTaskUpdated},
+		notification: {action: 'DEFAULT', data: null}
+	};
+	
 	constructor(props) {
 		super(props);
+		console.log(props);
 		this.onFilterChange = this.onFilterChange.bind(this);
 		this.onNewTaskChange = this.onNewTaskChange.bind(this);
 		this.clearNewTaskInput = this.clearNewTaskInput.bind(this);
 		this.getNextUpdateALlStatus = this.getNextUpdateALlStatus.bind(this);
 		this.state = {
 			filter: TASK_ALL,
-			lastUpdated: Date.now().toString(10),
-			newTask: ''
+			newTask: '',
+			message: ''
 		};
 	}
 	
@@ -30,24 +52,33 @@ export class App extends Component {
 	}
 	
 	componentDidUpdate(prevProps) {
-		if (prevProps.notification !== this.props.notification) {
-			const {action, data} = this.props.notification;
+		const {
+			notification: prevNotification
+		} = prevProps, {
+			notification
+		} = this.props;
+		if (prevNotification !== notification
+			&& prevNotification.action !== notification.action
+			&& prevNotification.timestamp !== notification.timestamp) {
+			const {action, data} = notification;
 			if (action === 'NEW_SESSION') {
 				const {token} = data;
 				document.cookie = `session=${token};`;
-				document.cookie = `connection=true;`
+				document.cookie = `connection=true;`;
 			} else if (action === 'SESSION_EXPIRED') {
 				document.cookie = `session=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
 			} else if (action === 'SESSION_RESTORED') {
 				document.cookie = 'connection=true;'
 			}
+			this.setState({message:data.message});
 		}
 	}
 	
 	render() {
 		let {
 			filter,
-			newTask
+			newTask,
+			message
 		} = this.state, {
 			timestamp = 'NONE',
 			stats
@@ -75,22 +106,12 @@ export class App extends Component {
 	        </span>
 				<TaskList filter={filter} timestamp={timestamp}/>
 				<Footer/>
-				{this.renderNotification()}
+				<SnackBar
+					timeout={2000}
+					message={message}
+				/>
 			</Fragment>
 		);
-	}
-	
-	renderNotification() {
-		const {
-				notification
-			} = this.props,
-			message = (notification && notification.data && notification.data.message) || '';
-		return (
-			<SnackBar
-				timeout={2000}
-				message={message}
-			/>
-		)
 	}
 	
 	onNewTaskChange({target: {value}}) {
