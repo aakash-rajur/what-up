@@ -2,7 +2,7 @@ import {InMemoryCache} from 'apollo-cache-inmemory';
 import {ApolloClient} from 'apollo-client';
 import {ApolloLink, split} from 'apollo-link';
 import {onError} from 'apollo-link-error';
-import {HttpLink} from 'apollo-link-http';
+import {createHttpLink} from 'apollo-link-http';
 import {WebSocketLink} from 'apollo-link-ws';
 import {getMainDefinition} from "apollo-utilities";
 import gql from 'graphql-tag';
@@ -92,7 +92,7 @@ export default function getApolloClient() {
 				reconnectionAttempts: 3
 			}
 		}),
-		httpLink = new HttpLink({
+		httpLink = createHttpLink({
 			uri: API_URL,
 			credentials: 'include'
 		});

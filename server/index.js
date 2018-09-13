@@ -34,6 +34,10 @@ function startServer() {
 			corsConfig = {
 				origin: FRONTEND_URL.split(','),
 				credentials: true,
+				exposedHeaders: [
+					'Access-Control-Allow-Methods',
+					'Access-Control-Allow-Headers'
+				],
 				optionsSuccessStatus: 200
 			};
 		

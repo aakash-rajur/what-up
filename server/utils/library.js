@@ -64,6 +64,9 @@ function verifySession(session) {
 }
 
 async function authenticateUser(req, res, next) {
+	res.set('Access-Control-Allow-Methods','*');
+	res.set('Access-Control-Allow-Headers','Content-Type, *');
+	
 	let {session, connection = false} = req.cookies;
 	req.connection = connection;
 	console.log(req.cookies);

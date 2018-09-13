@@ -46,9 +46,13 @@ export class App extends Component {
 		};
 	}
 	
-	componentDidMount() {
+	async componentDidMount() {
 		window.addEventListener('unload', () =>
 			document.cookie = `connection=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`);
+		console.log(await (await fetch('http://what-up.herokuapp.com/', {
+			credentials: 'include',
+			mode: 'cors'
+		})).text());
 	}
 	
 	componentDidUpdate(prevProps) {
@@ -70,7 +74,7 @@ export class App extends Component {
 			} else if (action === 'SESSION_RESTORED') {
 				document.cookie = 'connection=true;'
 			}
-			this.setState({message:data.message});
+			this.setState({message: data.message});
 		}
 	}
 	
