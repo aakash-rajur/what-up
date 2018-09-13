@@ -36,8 +36,7 @@ const ON_SERVER_NOTIFICATION = gql`
 `;
 
 let client = null,
-	session = null,
-	cookies = null;
+	session = null;
 
 async function setupServer() {
 	console.info(await startServer());
@@ -115,7 +114,6 @@ async function setupServer() {
 		message
 	};
 	console.info(session.message);
-	cookies = [`session=${token}`];
 }
 
 async function cleanUp() {
@@ -225,7 +223,7 @@ function testAPI() {
 		it(name, async () => {
 			let res = await graphql
 				.post('/graphql')
-				.set('Cookie', cookies)
+				.set('session', session.token)
 				.type("json")
 				.send({query: query()});
 			await res.should.have.status(200);
