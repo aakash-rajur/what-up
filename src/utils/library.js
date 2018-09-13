@@ -12,7 +12,7 @@ export function wait(delay, cb, ...args) {
 	let timeout = null,
 		promise = new Promise(resolve => {
 			timeout = setTimeout(async () =>
-				resolve(cb && await cb(...(args || []))),
+					resolve(cb && await cb(...(args || []))),
 				delay
 			);
 		});
@@ -76,3 +76,12 @@ export const FILTER_BUTTON_TEMPLATE = [{
 	title: 'View Cancelled Tasks',
 	filter: TASK_CANCELLED
 }];
+
+export function parseCookie() {
+	let cookies = document.cookie.split(';');
+	return cookies.reduce((parsed, each) => {
+		let [key, value = ''] = each.split('=');
+		parsed[key.trim()] = value.trim();
+		return parsed;
+	}, {});
+}

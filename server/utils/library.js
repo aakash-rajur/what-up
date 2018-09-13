@@ -64,12 +64,11 @@ function verifySession(session) {
 }
 
 async function authenticateUser(req, res, next) {
-	res.set('Access-Control-Allow-Methods','*');
-	res.set('Access-Control-Allow-Headers','Content-Type, *');
+	res.set('Access-Control-Allow-Methods', '*');
+	res.set('Access-Control-Allow-Headers', 'Content-Type, *');
 	
-	let {session, connection = false} = req.cookies;
-	req.connection = connection;
-	console.log(req.cookies);
+	let {session, action = 'NONE'} = req.headers;
+	req.action = action;
 	if (!session) return next();
 	try {
 		let user = verifySession(session);
@@ -82,9 +81,10 @@ async function authenticateUser(req, res, next) {
 	next();
 }
 
-async function createSession(cookie = '', publisher) {
+async function createSession(connectionParams = '', publisher) {
 	const postgres = getDB();
-	let {session} = cookieParser.parse(cookie), user = null;
+	let {session} = connectionParams,
+		user = null;
 	if (session) {
 		let shouldRefresh = false;
 		try {

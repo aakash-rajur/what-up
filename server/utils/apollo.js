@@ -59,13 +59,14 @@ const typeDefs = gql`
 `;
 
 function hasSessionExpired(context) {
-	if (!context.connection) return false;
+	//if (!context.connection) return false;
+	if (!['NEW_SESSION','SESSION_RESTORED'].includes(context.action)) return false;
 	if (!context.user) {
 		publisher.notify(ON_NOTIFICATION, {
 			action: 'SESSION_EXPIRED',
 			data: JSON.stringify({
 				message: 'Session Expired. Please Refresh!',
-				srouce:'XHR'
+				source: 'XHR'
 			})
 		});
 		return true;
@@ -134,9 +135,10 @@ function getApolloServer(postgres) {
 		resolvers: resolverGenerator(postgres),
 		subscriptions: {
 			onConnect: async (connectionParams, webSocket) => {
+				console.log('connectionParams', connectionParams);
 				let {remoteAddress, remotePort} = webSocket._socket;
 				console.info(`websocket connected to ${remoteAddress}:${remotePort}`);
-				createSession(webSocket.upgradeReq.headers.cookie, publisher);
+				createSession(connectionParams, publisher);
 			},
 			onDisconnect: webSocket => {
 				let {remoteAddress, remotePort} = webSocket._socket;

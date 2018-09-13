@@ -17,6 +17,7 @@ import {
 	TASKS_CHANGED,
 	WS_URL
 } from "./constants";
+import {parseCookie} from "./library";
 
 export const FETCH_TASKS = gql`
     query fetchTasks($filter: String!, $timestamp: String){
@@ -89,12 +90,22 @@ export default function getApolloClient() {
 				timeout: 600000,
 				inactivityTimeout: 0,
 				reconnect: true,
-				reconnectionAttempts: 3
+				reconnectionAttempts: 3,
+				connectionParams: parseCookie
 			}
 		}),
 		httpLink = createHttpLink({
 			uri: API_URL,
 			credentials: 'include'
+		}),
+		authMiddlewareHttp = new ApolloLink((operation, forward) => {
+			operation.setContext(({headers = {}}) => ({
+				headers: {
+					...headers,
+					...parseCookie()
+				}
+			}));
+			return forward(operation);
 		});
 	wsLink.subscriptionClient.maxConnectTimeGenerator.duration = () =>
 		wsLink.subscriptionClient.maxConnectTimeGenerator.max;
@@ -111,6 +122,7 @@ export default function getApolloClient() {
 					if (networkError) console.error(`[Network error]: ${JSON.stringify(networkError)}`);
 				}
 			),
+			authMiddlewareHttp,
 			split(
 				({query}) => {
 					const {kind, operation} = getMainDefinition(query);
@@ -187,7 +199,6 @@ export const withNotificationAndTaskSubscription = compose(
 	graphql(ON_SERVER_NOTIFICATION, {
 		props: ({data: {[ON_NOTIFICATION]: notification = defaultNotification}}) => {
 			const {data = null, timestamp, ...rest} = notification || {};
-			console.log(`notification ${timestamp}`, notification);
 			return {
 				notification: {
 					...rest,
@@ -201,7 +212,6 @@ export const withNotificationAndTaskSubscription = compose(
 	}),
 	graphql(TASKS_UPDATED, {
 		props: ({data: {[TASKS_CHANGED]: stats = defaultTaskUpdated}}) => {
-			console.log(`stat ${stats.timestamp}`, stats);
 			return {
 				stats,
 				timestamp: stats.timestamp

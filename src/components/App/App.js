@@ -34,7 +34,6 @@ export class App extends Component {
 	
 	constructor(props) {
 		super(props);
-		console.log(props);
 		this.onFilterChange = this.onFilterChange.bind(this);
 		this.onNewTaskChange = this.onNewTaskChange.bind(this);
 		this.clearNewTaskInput = this.clearNewTaskInput.bind(this);
@@ -49,10 +48,6 @@ export class App extends Component {
 	async componentDidMount() {
 		window.addEventListener('unload', () =>
 			document.cookie = `connection=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`);
-		console.log(await (await fetch('http://what-up.herokuapp.com/', {
-			credentials: 'include',
-			mode: 'cors'
-		})).text());
 	}
 	
 	componentDidUpdate(prevProps) {
@@ -65,15 +60,19 @@ export class App extends Component {
 			&& prevNotification.action !== notification.action
 			&& prevNotification.timestamp !== notification.timestamp) {
 			const {action, data} = notification;
-			if (action === 'NEW_SESSION') {
-				const {token} = data;
-				document.cookie = `session=${token};`;
-				document.cookie = `connection=true;`;
-			} else if (action === 'SESSION_EXPIRED') {
-				document.cookie = `session=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
-			} else if (action === 'SESSION_RESTORED') {
-				document.cookie = 'connection=true;'
+			switch (action) {
+				case 'NEW_SESSION': {
+					const {token} = data;
+					document.cookie = `session=${token};`;
+					break;
+				}
+				case 'SESSION_EXPIRED': {
+					document.cookie = `session=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+					break;
+				}
+				default: break;
 			}
+			document.cookie = `action=${action}`;
 			this.setState({message: data.message});
 		}
 	}
