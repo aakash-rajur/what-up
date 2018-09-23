@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {Component, Fragment} from 'react';
-import {defaultTaskUpdated, withNotificationAndTaskSubscription} from "../../utils/apollo";
+import {withSession} from "../../utils/apollo";
 import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "../../utils/constants";
-import {FILTER_BUTTON_TEMPLATE} from "../../utils/library";
+import {FILTER_BUTTON_TEMPLATE} from '../../utils/library';
 import FilterButton from "../FilterButton/FilterButton";
 import Footer from "../Footer/Footer";
 import NewTask from "../NewTask/NewTask";
@@ -13,79 +13,58 @@ import './App.css';
 
 export class App extends Component {
 	static propTypes = {
-		timestamp: PropTypes.string,
-		stats: PropTypes.shape({
+		stat: PropTypes.shape({
 			[TASK_ALL]: PropTypes.number,
 			[TASK_CANCELLED]: PropTypes.number,
 			[TASK_COMPLETED]: PropTypes.number,
-			[TASK_CREATED]: PropTypes.number
+			[TASK_CREATED]: PropTypes.number,
+			timestamp: PropTypes.string
 		}),
 		notification: PropTypes.shape({
 			action: PropTypes.string,
-			data: PropTypes.any
+			timestamp: PropTypes.string,
+			data: PropTypes.object
 		})
 	};
 	
 	static defaultProps = {
-		timestamp: '0',
-		stats: {...defaultTaskUpdated},
-		notification: {action: 'DEFAULT', data: null}
+		stat: {
+			[TASK_ALL]: 0,
+			[TASK_CANCELLED]: 0,
+			[TASK_COMPLETED]: 0,
+			[TASK_CREATED]: 0,
+			timestamp: "0"
+		},
+		notification: {
+			action: null,
+			timestamp: "0",
+			data: null
+		}
 	};
 	
 	constructor(props) {
 		super(props);
+		this.getLatestTimestamp = this.getLatestTimestamp.bind(this);
 		this.onFilterChange = this.onFilterChange.bind(this);
 		this.onNewTaskChange = this.onNewTaskChange.bind(this);
 		this.clearNewTaskInput = this.clearNewTaskInput.bind(this);
 		this.getNextUpdateALlStatus = this.getNextUpdateALlStatus.bind(this);
 		this.state = {
 			filter: TASK_ALL,
-			newTask: '',
-			message: ''
+			newTask: ''
 		};
 	}
 	
-	async componentDidMount() {
-		window.addEventListener('unload', () =>
-			document.cookie = `connection=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`);
-	}
-	
-	componentDidUpdate(prevProps) {
-		const {
-			notification: prevNotification
-		} = prevProps, {
-			notification
-		} = this.props;
-		if (prevNotification !== notification
-			&& prevNotification.action !== notification.action
-			&& prevNotification.timestamp !== notification.timestamp) {
-			const {action, data} = notification;
-			switch (action) {
-				case 'NEW_SESSION': {
-					const {token} = data;
-					document.cookie = `session=${token};`;
-					break;
-				}
-				case 'SESSION_EXPIRED': {
-					document.cookie = `session=;expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
-					break;
-				}
-				default: break;
-			}
-			document.cookie = `action=${action}`;
-			this.setState({message: data.message});
-		}
-	}
 	
 	render() {
 		let {
-			filter,
-			newTask,
-			message
-		} = this.state, {
-			timestamp = 'NONE',
-			stats
-		} = this.props;
+				filter,
+				newTask
+			} = this.state, {
+				notification: {data: notificationData},
+				stat
+			} = this.props,
+			timestamp = this.getLatestTimestamp();
 		return (
 			<Fragment>
 				<h1 className="accent-font-color title">What Up!</h1>
@@ -101,20 +80,28 @@ export class App extends Component {
 					<div className="filter-container">
 						{FILTER_BUTTON_TEMPLATE.map((type, index) => (
 							<FilterButton key={index} {...type}
-							              stat={stats ? stats[type.filter] : 0}
+							              stat={stat ? stat[type.filter] : 0}
 							              active={type.filter === filter}
 							              onClick={this.onFilterChange}/>
 						))}
 	                </div>
-	        </span>
+        </span>
 				<TaskList filter={filter} timestamp={timestamp}/>
 				<Footer/>
 				<SnackBar
 					timeout={2000}
-					message={message}
+					message={notificationData && notificationData.message}
 				/>
 			</Fragment>
 		);
+	}
+	
+	getLatestTimestamp() {
+		const {
+			notification: {timestamp: t1},
+			stat: {timestamp: t2}
+		} = this.props;
+		return t2 > t1 ? t2 : t1;
 	}
 	
 	onNewTaskChange({target: {value}}) {
@@ -135,7 +122,7 @@ export class App extends Component {
 		const {
 			[TASK_ALL]: total,
 			[TASK_COMPLETED]: completed
-		} = this.props.stats, {
+		} = this.props.stat, {
 			filter
 		} = this.state;
 		if (filter === TASK_ALL)
@@ -153,4 +140,4 @@ export class App extends Component {
 	}
 }
 
-export default withNotificationAndTaskSubscription(App);
+export default withSession(App);

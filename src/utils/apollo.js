@@ -6,7 +6,9 @@ import {createHttpLink} from 'apollo-link-http';
 import {WebSocketLink} from 'apollo-link-ws';
 import {getMainDefinition} from "apollo-utilities";
 import gql from 'graphql-tag';
-import {compose, graphql} from 'react-apollo';
+import PropTypes from "prop-types";
+import React, {Component} from 'react';
+import {compose, graphql, withApollo} from 'react-apollo';
 import {
 	API_URL,
 	ON_NOTIFICATION,
@@ -18,6 +20,12 @@ import {
 	WS_URL
 } from "./constants";
 import {parseCookie} from "./library";
+
+export const CREATE_SESSION = gql`
+    query createSession{
+        session
+    }
+`;
 
 export const FETCH_TASKS = gql`
     query fetchTasks($filter: String!, $timestamp: String){
@@ -62,8 +70,8 @@ export const ADD_TASK = gql`
 `;
 
 export const TASKS_UPDATED = gql`
-    subscription onTasksChanged {
-        TASKS_CHANGED {
+    subscription onTasksChanged($token: String!) {
+        TASKS_CHANGED(token: $token) {
             timestamp,
             CREATED,
             COMPLETED,
@@ -74,8 +82,8 @@ export const TASKS_UPDATED = gql`
 `;
 
 export const ON_SERVER_NOTIFICATION = gql`
-    subscription onServerNotification {
-        ON_NOTIFICATION {
+    subscription onServerNotification($token: String!) {
+        ON_NOTIFICATION(token: $token) {
             timestamp,
             action,
             data
@@ -90,8 +98,7 @@ export default function getApolloClient() {
 				timeout: 600000,
 				inactivityTimeout: 0,
 				reconnect: true,
-				reconnectionAttempts: 3,
-				connectionParams: parseCookie
+				reconnectionAttempts: 3
 			}
 		}),
 		httpLink = createHttpLink({
@@ -99,16 +106,23 @@ export default function getApolloClient() {
 			credentials: 'include'
 		}),
 		authMiddlewareHttp = new ApolloLink((operation, forward) => {
-			operation.setContext(({headers = {}}) => ({
-				headers: {
-					...headers,
-					...parseCookie()
-				}
-			}));
+			operation.setContext(({headers = {}}) => {
+				const {session} = parseCookie();
+				if (!session) return headers;
+				return {
+					headers: {
+						...headers,
+						session
+					}
+				};
+			});
 			return forward(operation);
-		});
-	wsLink.subscriptionClient.maxConnectTimeGenerator.duration = () =>
-		wsLink.subscriptionClient.maxConnectTimeGenerator.max;
+		}),
+		{subscriptionClient} = wsLink;
+	
+	subscriptionClient.maxConnectTimeGenerator.duration = () =>
+		subscriptionClient.maxConnectTimeGenerator.max;
+	
 	return new ApolloClient({
 		link: ApolloLink.from([
 			onError(
@@ -119,7 +133,9 @@ export default function getApolloClient() {
 								`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
 							),
 						);
-					if (networkError) console.error(`[Network error]: ${JSON.stringify(networkError)}`);
+					if (networkError) {
+						console.error(networkError);
+					}
 				}
 			),
 			authMiddlewareHttp,
@@ -136,36 +152,44 @@ export default function getApolloClient() {
 	});
 }
 
-export const withTaskMutations = compose(...[{
-		mutation: CANCEL_TASK,
-		prefix: 'cancel',
-		args: ({id}) => ({id})
-	}, {
-		mutation: EDIT_TASK,
-		prefix: 'edit',
-		args: () => ({}),
-		dynamic: true
-	}, {
-		mutation: UPDATE_TASK,
-		prefix: 'update',
-		args: ({id, status}) => ({
-			id, status: status === TASK_CREATED ?
-				TASK_COMPLETED : TASK_CREATED
-		})
-	}].map(({mutation, prefix, args, dynamic}) => graphql(mutation, {
-		props: ({mutate}, result) => {
-			return ({
-				[`${prefix}Task`]: dynamic ? props => mutate({variables: {...props}}) : mutate,
-				[`${prefix}Result`]: result ? result.data : null
-			})
-		},
-		options: props => ({variables: args(props)})
-	}))
-);
+const DEFAULT_SESSION = "{}";
+
+export const sessionCreator = graphql(CREATE_SESSION, {
+	props: ({data: {session = DEFAULT_SESSION}}) => {
+		session = JSON.parse(session);
+		return {...session};
+	}
+});
 
 export const withQueryTasks = graphql(FETCH_TASKS, {
 	props: ({data = {}}, ...rest) => ({...data, ...rest})
 });
+
+export const withTaskMutations = compose(...[{
+	mutation: CANCEL_TASK,
+	prefix: 'cancel',
+	args: ({id}) => ({id})
+}, {
+	mutation: EDIT_TASK,
+	prefix: 'edit',
+	args: () => ({}),
+	dynamic: true
+}, {
+	mutation: UPDATE_TASK,
+	prefix: 'update',
+	args: ({id, status}) => ({
+		id, status: status === TASK_CREATED ?
+			TASK_COMPLETED : TASK_CREATED
+	})
+}].map(({mutation, prefix, args, dynamic}) => graphql(mutation, {
+	props: ({mutate}, result) => {
+		return ({
+			[`${prefix}Task`]: dynamic ? props => mutate({variables: {...props}}) : mutate,
+			[`${prefix}Result`]: result ? result.data : null
+		})
+	},
+	options: props => ({variables: args(props)})
+})));
 
 export const withNewTaskAddition = graphql(ADD_TASK, {
 	props: ({mutate}, result) => ({addNewTask: mutate, result}),
@@ -189,34 +213,83 @@ export const defaultTaskUpdated = {
 	[TASK_CREATED]: 0
 };
 
-const defaultNotification = {
-	timestamp: "0",
-	action: 'DEFAULT',
-	data: null
-};
+function graphQLSubscribe(client, cb, query, variables) {
+	client.subscribe({
+		query,
+		variables,
+		shouldResubscribe: true
+	}).subscribe({next: cb, error: console.error});
+}
 
-export const withNotificationAndTaskSubscription = compose(
-	graphql(ON_SERVER_NOTIFICATION, {
-		props: ({data: {[ON_NOTIFICATION]: notification = defaultNotification}}) => {
-			const {data = null, timestamp, ...rest} = notification || {};
-			return {
-				notification: {
-					...rest,
-					timestamp,
-					data: data && JSON.parse(data)
-				},
+function parseNotification(cb) {
+	return ({data}) => {
+		const {
+			[ON_NOTIFICATION]: {
+				action,
+				data: payload,
 				timestamp
+			}
+		} = data;
+		return cb({
+			action,
+			timestamp,
+			data: JSON.parse(payload)
+		});
+	};
+}
+
+function parseTasksChanged(cb) {
+	return ({data}) => {
+		const {[TASKS_CHANGED]: stat} = data;
+		return cb(stat);
+	};
+}
+
+export function withSession(Child) {
+	return sessionCreator(withApollo(
+		class Session extends Component {
+			static propTypes = {
+				token: PropTypes.string,
+				action: PropTypes.string,
+				client: PropTypes.object
 			};
-		},
-		options: () => ({shouldResubscribe: true})
-	}),
-	graphql(TASKS_UPDATED, {
-		props: ({data: {[TASKS_CHANGED]: stats = defaultTaskUpdated}}) => {
-			return {
-				stats,
-				timestamp: stats.timestamp
-			};
-		},
-		options: () => ({shouldResubscribe: true})
-	}),
-);
+			
+			constructor(props) {
+				super(props);
+				this.state = {};
+			}
+			
+			componentDidUpdate(prevProps) {
+				if (prevProps.action !== this.props.action) {
+					const {action, token, client} = this.props;
+					if (action === 'NEW_SESSION') {
+						document.cookie = `session=${token};`;
+					}
+					graphQLSubscribe(
+						client,
+						parseNotification(this.onSubscriptionData('notification')),
+						ON_SERVER_NOTIFICATION, {
+							token
+						}
+					);
+					graphQLSubscribe(
+						client,
+						parseTasksChanged(this.onSubscriptionData('stat')),
+						TASKS_UPDATED, {
+							token
+						}
+					);
+				}
+			}
+			
+			render() {
+				const {props, state} = this;
+				return <Child {...props} {...state}/>;
+			}
+			
+			onSubscriptionData(key) {
+				return (data) => this.setState({[key]: data});
+			}
+		}
+	));
+}
