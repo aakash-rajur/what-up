@@ -81,7 +81,7 @@ export function parseCookie() {
 	let cookies = document.cookie.split(';');
 	return cookies.reduce((parsed, each) => {
 		let [key, value = ''] = each.split('=');
-		parsed[key.trim()] = value.trim();
+		if (key) parsed[key.trim()] = value.trim();
 		return parsed;
 	}, {});
 }
