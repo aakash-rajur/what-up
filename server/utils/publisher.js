@@ -5,10 +5,15 @@ let instance = null;
 
 class Publisher {
 	constructor() {
+		this.notify = this.notify.bind(this);
+		this.notifyDeferred = this.notifyDeferred.bind(this);
 		this.pubsub = new PubSub();
+		this.asyncIterator = this.pubsub.asyncIterator.bind(this.pubsub);
 	}
 	
-	notify(event, data = {}) {
+	async notify(event, data = {}) {
+		if (data instanceof Function)
+			data = await data();
 		this.pubsub.publish(event, {
 			[event]: {
 				...data,
@@ -17,8 +22,8 @@ class Publisher {
 		});
 	}
 	
-	asyncIterator(...args) {
-		return this.pubsub.asyncIterator(...args);
+	notifyDeferred(event, data = {}) {
+		setImmediate(this.notify, event, data);
 	}
 }
 
