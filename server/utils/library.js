@@ -12,7 +12,6 @@ const {
 	DATABASE_URL
 } = process.env;
 const crypto = require('crypto');
-const cookieParser = require('cookie');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./db');
 
@@ -59,15 +58,13 @@ function createUser() {
 	};
 }
 
-function verifySession(session) {
+function verifySession(session = "") {
 	return jwt.verify(session, SESSION_SECRET).user;
 }
 
 async function authenticateUser(req, res, next) {
-	res.set('Access-Control-Allow-Methods', '*');
-	res.set('Access-Control-Allow-Headers', 'Content-Type, *');
-	
 	let {session, action = 'NONE'} = req.headers;
+	req.token = session;
 	req.action = action;
 	if (!session) return next();
 	try {
@@ -77,73 +74,10 @@ async function authenticateUser(req, res, next) {
 			req.user = user;
 	} catch (e) {
 		console.error(e);
+		req.token = 'EXPIRED';
+		req.user = jwt.decode(session).user;
 	}
 	next();
-}
-
-async function createSession(connectionParams = '', publisher) {
-	const postgres = getDB();
-	let {session} = connectionParams,
-		user = null;
-	if (session) {
-		let shouldRefresh = false;
-		try {
-			user = verifySession(session);
-			if (!user || !((await postgres.doesUserExist(user)).does_user_exist))
-				shouldRefresh = true;
-			else setImmediate(async () => {
-				publisher.notify(ON_NOTIFICATION, {
-					action: 'SESSION_RESTORED',
-					data: JSON.stringify({
-						message: `Your UserID is ${user}`,
-						source: 'WS'
-					})
-				});
-				publisher.notify(TASKS_CHANGED, {...await getStats(user), source: 'WS'});
-			});
-		} catch (err) {
-			const {name} = err;
-			shouldRefresh = name === 'TokenExpiredError';
-		}
-		
-		if (shouldRefresh) {
-			if (session) {
-				try {
-					user = jwt.decode(session).user;
-					if ((await postgres.doesUserExist(user)).does_user_exist) {
-						console.info(`attempting to nuke all data belonging to ${user}`);
-						await postgres.deleteTasks(user);
-						await postgres.deleteUser(user);
-					}
-				} catch (e) {
-					console.error(e);
-				}
-			}
-			setImmediate(() =>
-				publisher.notify(ON_NOTIFICATION, {
-					action: 'SESSION_EXPIRED',
-					data: JSON.stringify({
-						message: 'Session Expired. Please Refresh!',
-						source: 'WS'
-					})
-				}));
-		}
-	} else {
-		let {user, token} = createUser(),
-			{add_user: userID} = await postgres.addUser(user);
-		console.info(`adding user ${user} with id ${userID}`);
-		setImmediate(async () => {
-			publisher.notify(ON_NOTIFICATION, {
-				action: 'NEW_SESSION',
-				data: JSON.stringify({
-					token,
-					message: `Your UserID is ${user}`,
-					source: 'WS'
-				})
-			});
-			publisher.notify(TASKS_CHANGED, {...await getStats(user), source: 'WS'});
-		});
-	}
 }
 
 module.exports = {
@@ -154,9 +88,10 @@ module.exports = {
 	TASKS_CHANGED,
 	SESSION_CHANGE,
 	ON_NOTIFICATION,
+	createUser,
 	getStats,
+	verifySession,
 	authenticateUser,
 	getDB,
-	getTimestamp,
-	createSession
+	getTimestamp
 };
