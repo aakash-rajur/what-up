@@ -35,7 +35,6 @@ function startServer() {
 				origin: FRONTEND_URL.split(','),
 				credentials: true,
 				allowedHeaders: [
-					'action',
 					'session',
 					'content-type'
 				],
