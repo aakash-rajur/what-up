@@ -5,7 +5,7 @@ const {
 	TASKS_CHANGED,
 	TASK_CANCELLED,
 	ON_NOTIFICATION,
-	verifySession,
+	decodeSession,
 	createUser,
 	getStats
 } = require('./library');
@@ -61,14 +61,14 @@ const typeDefs = gql`
 `;
 
 function hasSessionExpired(context) {
-	const {user, token} = context;
-	if (!user) {
+	const {token, isExpired} = context;
+	if (isExpired) {
 		publisher.notify(ON_NOTIFICATION, {
 			action: 'SESSION_EXPIRED',
 			data: JSON.stringify({
-				message: 'Session Expired. Please Refresh!',
-				token
-			})
+				message: 'Session Expired. Please Refresh!'
+			}),
+			token
 		});
 		return true;
 	}
@@ -86,15 +86,16 @@ function resolverGenerator(postgres) {
 				return postgres.getTasks(context.user, filter);
 			},
 			session: async (root, args, context) => {
-				let {user, token} = context;
+				let {user, token, isExpired} = context;
 				
 				try {
-					if (token === 'EXPIRED') {
+					if (isExpired) {
 						if ((await postgres.doesUserExist(user)).does_user_exist) {
 							console.info(`attempting to nuke all data belonging to ${user}`);
 							await postgres.deleteTasks(user);
 							await postgres.deleteUser(user);
 						}
+						user = null;
 					}
 				} catch (e) {
 					console.error(e);
@@ -169,7 +170,7 @@ function resolverGenerator(postgres) {
 				subscribe: withFilter(
 					(_, {token}) => {
 						try {
-							const user = verifySession(token);
+							const user = decodeSession(token);
 							publisher.notifyDeferred(TASKS_CHANGED,
 								async () => ({
 									...await getStats(user),
@@ -188,7 +189,7 @@ function resolverGenerator(postgres) {
 				subscribe: withFilter(
 					(_, {token}) => {
 						try {
-							const user = verifySession(token);
+							const user = decodeSession(token);
 							publisher.notifyDeferred(ON_NOTIFICATION, {
 								action: 'NEW_SESSION',
 								data: JSON.stringify({message: `Your UserID is ${user}`}),
@@ -225,8 +226,8 @@ function getApolloServer(postgres) {
 				const {variables} = payload;
 				return {...variables};
 			}
-			const {token, user, guid} = req;
-			return {token, user, guid};
+			const {token, user, isExpired = false} = req;
+			return {token, user, isExpired};
 		}
 	});
 }

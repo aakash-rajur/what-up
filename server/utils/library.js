@@ -62,10 +62,15 @@ function verifySession(session = "") {
 	return jwt.verify(session, SESSION_SECRET).user;
 }
 
+function decodeSession(session=""){
+	return jwt.decode(session).user;
+}
+
 async function authenticateUser(req, res, next) {
 	let {session, action = 'NONE'} = req.headers;
 	req.token = session;
 	req.action = action;
+	req.isExpired = false;
 	if (!session) return next();
 	try {
 		let user = verifySession(session);
@@ -73,9 +78,10 @@ async function authenticateUser(req, res, next) {
 		if ((await postgres.doesUserExist(user)).does_user_exist)
 			req.user = user;
 	} catch (e) {
-		console.error(e);
-		req.token = 'EXPIRED';
-		req.user = jwt.decode(session).user;
+		if (e.name === 'TokenExpiredError') {
+			req.user = jwt.decode(session).user;
+			req.isExpired = true;
+		} else console.error(e);
 	}
 	next();
 }
@@ -90,7 +96,7 @@ module.exports = {
 	ON_NOTIFICATION,
 	createUser,
 	getStats,
-	verifySession,
+	decodeSession,
 	authenticateUser,
 	getDB,
 	getTimestamp
