@@ -55,13 +55,15 @@ export class App extends Component {
 		};
 	}
 	
-	
 	render() {
 		let {
 				filter,
 				newTask
 			} = this.state, {
-				notification: {data: notificationData},
+				notification: {
+					data: notificationData,
+					action
+				},
 				stat
 			} = this.props,
 			timestamp = this.getLatestTimestamp();
@@ -86,7 +88,11 @@ export class App extends Component {
 						))}
 	                </div>
         </span>
-				<TaskList filter={filter} timestamp={timestamp}/>
+				<TaskList
+					filter={filter}
+					timestamp={timestamp}
+					action={action}
+				/>
 				<Footer/>
 				<SnackBar
 					timeout={2000}

@@ -162,7 +162,8 @@ export const sessionCreator = graphql(CREATE_SESSION, {
 });
 
 export const withQueryTasks = graphql(FETCH_TASKS, {
-	props: ({data = {}}, ...rest) => ({...data, ...rest})
+	props: ({data = {}}, ...rest) => ({...data, ...rest}),
+	skip:({action}) => (action === 'SESSION_EXPIRED')
 });
 
 export const withTaskMutations = compose(...[{
