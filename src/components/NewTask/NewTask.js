@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react';
-import {withNewTaskAddition} from "../../utils/apollo";
+import {withNewTaskAddition} from "../../graphql/hoc";
 import Input from "../Input/Input";
 
 export function NewTask({newTask, onChange, addNewTask, ...rest}) {

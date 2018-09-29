@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import CANCEL_ICON from '../../assets/close.svg';
-import {withTaskMutations} from "../../utils/apollo";
+import {withTaskMutations} from "../../graphql/hoc";
 import {TASK_CREATED, TASK_TITLE} from "../../utils/constants";
 import {getFormattedTimestamp} from "../../utils/library";
 import Input from "../Input/Input";

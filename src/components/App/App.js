@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {Component, Fragment} from 'react';
-import {withSession} from "../../utils/apollo";
+import {withSession} from "../../graphql/hoc";
 import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "../../utils/constants";
 import {FILTER_BUTTON_TEMPLATE} from '../../utils/library';
 import FilterButton from "../FilterButton/FilterButton";

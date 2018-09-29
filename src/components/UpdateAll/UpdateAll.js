@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import CHEVRON_DOWN_ICON from "../../assets/chevron-down.svg";
-import {withUpdateAll} from "../../utils/apollo";
+import {withUpdateAll} from "../../graphql/hoc";
 
 export function UpdateAll({className, updateAll}) {
 	return (

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {withQueryTasks} from "../../utils/apollo";
+import {withQueryTasks} from "../../graphql/hoc";
 import {TASK_ALL} from "../../utils/constants";
 import Error from "../Error/Error";
 import Loading from "../Loading/Loading";

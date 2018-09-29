@@ -1,6 +1,6 @@
 import React from "react";
 import {Mutation} from 'react-apollo';
-import {TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED} from "./constants";
+import {ON_NOTIFICATION, TASK_ALL, TASK_CANCELLED, TASK_COMPLETED, TASK_CREATED, TASKS_CHANGED} from "./constants";
 
 export function promiseSetState(context) {
 	return newState => new Promise(resolve =>
@@ -84,4 +84,36 @@ export function parseCookie() {
 		if (key) parsed[key.trim()] = value.trim();
 		return parsed;
 	}, {});
+}
+
+export function parseNotification(cb) {
+	return ({data}) => {
+		const {
+			[ON_NOTIFICATION]: {
+				action,
+				data: payload,
+				timestamp
+			}
+		} = data;
+		return cb({
+			action,
+			timestamp,
+			data: JSON.parse(payload)
+		});
+	};
+}
+
+export function parseTasksChanged(cb) {
+	return ({data}) => {
+		const {[TASKS_CHANGED]: stat} = data;
+		return cb(stat);
+	};
+}
+
+export function graphQLSubscribe(client, cb, query, variables) {
+	client.subscribe({
+		query,
+		variables,
+		shouldResubscribe: true
+	}).subscribe({next: cb, error: console.error});
 }
