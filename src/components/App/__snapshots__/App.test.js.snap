@@ -66,12 +66,13 @@ exports[`App component match snapshot with non-empty list 1`] = `
     </div>
   </span>
   <Apollo(TaskList)
+    action={null}
     filter="ALL"
     timestamp="0"
   />
   <Footer />
   <SnackBar
-    message=""
+    message={null}
     timeout={2000}
   />
 </Fragment>
