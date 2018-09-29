@@ -1,5 +1,5 @@
 const {PubSub} = require('apollo-server-express');
-const {getTimestamp} = require('./library');
+const {getTimestamp} = require('../utils/library');
 
 let instance = null;
 

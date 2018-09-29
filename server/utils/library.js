@@ -13,7 +13,7 @@ const {
 } = process.env;
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const connectDB = require('./db');
+const connectDB = require('../modules/db');
 
 function getDB() {
 	let url = DATABASE_URL || PG_URL;

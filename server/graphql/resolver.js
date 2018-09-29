@@ -1,5 +1,5 @@
-const {ApolloServer, gql, withFilter} = require('apollo-server-express');
-const getPublisher = require('./publisher');
+const {withFilter} = require('apollo-server-express');
+const getPublisher = require('../modules/publisher');
 const publisher = getPublisher();
 const {
 	TASKS_CHANGED,
@@ -8,57 +8,7 @@ const {
 	decodeSession,
 	createUser,
 	getStats
-} = require('./library');
-
-const typeDefs = gql`
-    enum TASK_STATUS {
-        CREATED,
-        COMPLETED,
-        CANCELLED
-    }
-
-    type Task {
-        id: String!,
-        description: String!,
-        status: TASK_STATUS
-        created: String!,
-        updated: String!
-    }
-
-    type Stat {
-        timestamp: String!,
-        CREATED: Int,
-        COMPLETED: Int,
-        CANCELLED: Int,
-        ALL: Int
-    }
-
-    type Notification {
-        timestamp: String!,
-        action: String!,
-        data: String!
-    }
-
-    type Query {
-        hello(name: String): String!,
-        tasks(filter: String, timestamp: String): [Task],
-        session:String!
-    }
-
-    type Mutation {
-        hello(name: String): String!,
-        add(description: String!): String!,
-        remove(id: String!): String!,
-        edit(id: String!, description: String!): String!
-        update(id: String!, status: String!): String!,
-        updateAll(filter:String!, status: String!): Int
-    }
-
-    type Subscription {
-        TASKS_CHANGED(token: String): Stat!,
-        ON_NOTIFICATION(token: String): Notification!
-    }
-`;
+} = require('../utils/library');
 
 function hasSessionExpired(context) {
 	const {token, isExpired} = context;
@@ -207,31 +157,6 @@ function resolverGenerator(postgres) {
 	}
 }
 
-function getApolloServer(postgres) {
-	return new ApolloServer({
-		typeDefs,
-		resolvers: resolverGenerator(postgres),
-		subscriptions: {
-			onConnect: async (connectionParams, webSocket) => {
-				let {remoteAddress, remotePort} = webSocket._socket;
-				console.info(`websocket connected to ${remoteAddress}:${remotePort}`);
-			},
-			onDisconnect: webSocket => {
-				let {remoteAddress, remotePort} = webSocket._socket;
-				console.info(`websocket disconnected from ${remoteAddress}:${remotePort}`);
-			}
-		},
-		context: ({req, payload}) => {
-			if (payload) {
-				const {variables} = payload;
-				return {...variables};
-			}
-			const {token, user, isExpired = false} = req;
-			return {token, user, isExpired};
-		}
-	});
-}
-
 module.exports = {
-	getApolloServer
+	resolverGenerator
 };
