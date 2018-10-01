@@ -62,18 +62,22 @@ export function getFormattedTimestamp(timestamp) {
 export const FILTER_BUTTON_TEMPLATE = [{
 	text: 'All',
 	title: 'View All Tasks',
+	shortText: 'A',
 	filter: TASK_ALL
 }, {
 	text: 'Active',
 	title: 'View Active Tasks',
+	shortText: '◯',
 	filter: TASK_CREATED
 }, {
 	text: 'Completed',
 	title: 'View Completed Tasks',
+	shortText: '✔',
 	filter: TASK_COMPLETED
 }, {
 	text: 'Cancelled',
 	title: 'View Cancelled Tasks',
+	shortText: '✗',
 	filter: TASK_CANCELLED
 }];
 

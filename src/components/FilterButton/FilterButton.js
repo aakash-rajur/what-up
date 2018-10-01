@@ -11,6 +11,7 @@ class FilterButton extends Component {
 		active: PropTypes.bool,
 		stat: PropTypes.number,
 		text: PropTypes.string,
+		shortText: PropTypes.string
 	};
 	
 	static defaultProps = {
@@ -28,12 +29,13 @@ class FilterButton extends Component {
 	render() {
 		let {
 			text, title, active,
-			filter, stat
+			filter, stat, shortText
 		} = this.props;
 		return (
 			<button title={title} className={`filter ${filter.toLowerCase()}`}
 			        onClick={this.onClick} data-active={active} disabled={active}>
-				{text}
+				<span className="text">{text}</span>
+				{shortText && <span className="short-text">{shortText}</span>}
 				<span className="badge">{stat > 99 ? '∞' : stat}</span>
 			</button>
 		)
