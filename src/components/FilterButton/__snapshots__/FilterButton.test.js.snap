@@ -9,6 +9,9 @@ exports[`FilterButton with default props match snapshot 1`] = `
   title=""
 >
   <span
+    className="text"
+  />
+  <span
     className="badge"
   >
     0
@@ -24,6 +27,9 @@ exports[`FilterButton with props match snapshot 1`] = `
   onClick={[Function]}
   title="ALL"
 >
+  <span
+    className="text"
+  />
   <span
     className="badge"
   >
