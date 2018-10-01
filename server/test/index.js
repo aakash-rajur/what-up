@@ -26,8 +26,8 @@ const {startServer, stopServer} = require('../index');
 const {getDB} = require('../utils/library');
 
 const ON_SERVER_NOTIFICATION = gql`
-    subscription onServerNotification {
-        ON_NOTIFICATION {
+    subscription onServerNotification($token: String!) {
+        ON_NOTIFICATION(token: $token) {
             timestamp,
             action,
             data
@@ -96,7 +96,21 @@ const FETCH_TASKS = gql`
 `;
 
 let client = null,
-	session = null;
+	session = null,
+	latestTaskChange = null;
+
+function verifyTasksChange(expectedStat = {CREATED: 0, COMPLETED: 0, CANCELLED: 0, ALL: 0}) {
+	expect(latestTaskChange).to.not.equal(null);
+	latestTaskChange.should.have.property('data');
+	latestTaskChange.data.should.have.property('TASKS_CHANGED');
+	const {TASKS_CHANGED: stat} = latestTaskChange.data;
+	['CREATED', 'COMPLETED', 'CANCELLED', 'ALL'].forEach(property => {
+		stat.should.have.property(property);
+		expect(stat[property]).to.equal(expectedStat[property])
+	});
+	latestTaskChange = null;
+	return stat;
+}
 
 async function setupServer() {
 	console.info(await startServer());
@@ -159,7 +173,6 @@ async function setupServer() {
 		]),
 		cache: new InMemoryCache()
 	});
-	
 	
 	/*let notification = await new Promise((resolve, reject) => {
 		client.subscribe({
@@ -392,6 +405,53 @@ function apolloSession() {
 		expect(provided.action).to.equal('SESSION_RESTORED');
 		expect(provided.token).to.equal(session.token);
 	});
+	
+	it('should subscribe to notification', async () => {
+		let notification = await new Promise((resolve, reject) =>
+			client.subscribe({
+				query: ON_SERVER_NOTIFICATION,
+				variables: {token: session.token}
+			}).subscribe({
+				next: resolve,
+				error: reject
+			})
+		);
+		notification.should.have.property('data');
+		notification.data.should.have.property('ON_NOTIFICATION');
+		const {ON_NOTIFICATION: payload} = notification.data;
+		[{
+			key: 'timestamp',
+			type: 'string'
+		}, {
+			key: 'action',
+			type: 'string',
+			value: 'NEW_SESSION'
+		}, {
+			key: 'data',
+			type: 'string'
+		}].forEach(({key, type, value}) => {
+			payload.should.have.property(key);
+			payload[key].should.be.a(type);
+			if (value) expect(payload[key]).to.equal(value);
+		});
+		let data = JSON.parse(payload.data);
+		data.should.have.property('message');
+		data.message.should.be.a('string');
+		return notification;
+	});
+	
+	it('should subscribe to tasks-changed', async () => {
+		client.subscribe({
+			query: TASKS_UPDATED,
+			variables: {token: session.token}
+		}).subscribe({
+			next: payload => latestTaskChange = payload,
+			error: console.error
+		});
+		return await new Promise(resolve =>
+			setTimeout(() => resolve(verifyTasksChange()), 25)
+		);
+	});
 }
 
 function apolloAPI() {
@@ -407,8 +467,13 @@ function apolloAPI() {
 			test: async res => {
 				res.data.should.have.property('add');
 				res.data.add.should.be.a('string');
+				verifyTasksChange({
+					CREATED: 1,
+					COMPLETED: 0,
+					CANCELLED: 0,
+					ALL: 1
+				});
 				task1ID = Number.parseInt(res.data.add);
-				return task1ID;
 			}
 		}, {
 			name: 'add new task2',
@@ -419,8 +484,13 @@ function apolloAPI() {
 			test: async res => {
 				res.data.should.have.property('add');
 				res.data.add.should.be.a('string');
+				verifyTasksChange({
+					CREATED: 2,
+					COMPLETED: 0,
+					CANCELLED: 0,
+					ALL: 2
+				});
 				task2ID = Number.parseInt(res.data.add);
-				return task2ID;
 			}
 		}, {
 			name: 'add new task3',
@@ -431,8 +501,13 @@ function apolloAPI() {
 			test: async res => {
 				res.data.should.have.property('add');
 				res.data.add.should.be.a('string');
+				verifyTasksChange({
+					CREATED: 3,
+					COMPLETED: 0,
+					CANCELLED: 0,
+					ALL: 3
+				});
 				task3ID = Number.parseInt(res.data.add);
-				return task3ID;
 			}
 		}, {
 			name: 'update all tasks',
@@ -441,7 +516,12 @@ function apolloAPI() {
 			test: async res => {
 				res.data.should.have.property('updateAll');
 				res.data.updateAll.should.be.a('number');
-				return res;
+				verifyTasksChange({
+					CREATED: 0,
+					COMPLETED: 3,
+					CANCELLED: 0,
+					ALL: 3
+				});
 			}
 		}, {
 			name: 'edit task description',
@@ -453,7 +533,12 @@ function apolloAPI() {
 				let date = new Date(res.data.edit);
 				expect(isNaN(date)).to.equal(false);
 				expect(isFinite(date)).to.equal(true);
-				return res;
+				verifyTasksChange({
+					CREATED: 0,
+					COMPLETED: 3,
+					CANCELLED: 0,
+					ALL: 3
+				});
 			}
 		}, {
 			name: 'update task',
@@ -465,6 +550,12 @@ function apolloAPI() {
 				let date = new Date(res.data.update);
 				expect(isNaN(date)).to.equal(false);
 				expect(isFinite(date)).to.equal(true);
+				verifyTasksChange({
+					CREATED: 1,
+					COMPLETED: 2,
+					CANCELLED: 0,
+					ALL: 3
+				});
 			}
 		}, {
 			name: 'cancel task',
@@ -476,6 +567,12 @@ function apolloAPI() {
 				let date = new Date(res.data.remove);
 				expect(isNaN(date)).to.equal(false);
 				expect(isFinite(date)).to.equal(true);
+				verifyTasksChange({
+					CREATED: 1,
+					COMPLETED: 1,
+					CANCELLED: 1,
+					ALL: 3
+				});
 			}
 		}];
 	
@@ -490,7 +587,8 @@ function apolloAPI() {
 						variables
 					});
 					res.should.have.property('data');
-					return await test(res);
+					await test(res);
+					return res;
 				} catch (e) {
 					console.error(e);
 					throw e;
@@ -542,7 +640,7 @@ after(stopServer);
 describe('start server', () => {
 	it('hello test world', () => {
 		return new Promise(resolve =>
-			setTimeout(resolve, 1500, 'setup complete')
+			setTimeout(resolve, 1000, 'setup complete')
 		);
 	});
 });
