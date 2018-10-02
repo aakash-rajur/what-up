@@ -2,7 +2,6 @@ require('dotenv').config();
 const {getApolloServer} = require("./graphql/apollo");
 const express = require('express');
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const http = require('http');
 const {authenticateUser, getDB} = require('./utils/library');
@@ -56,7 +55,6 @@ function startServer() {
 		}
 		
 		app.use(cors(corsConfig));
-		app.use(cookieParser());
 		app.options('*', cors(corsConfig));
 		app.use('*', authenticateUser);
 		apollo.applyMiddleware({cors: corsConfig, app});
