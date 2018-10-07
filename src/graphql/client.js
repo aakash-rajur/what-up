@@ -9,62 +9,60 @@ import {API_URL, WS_URL} from "../utils/constants";
 import {parseCookie} from "../utils/library";
 
 export default function getApolloClient() {
-	const wsLink = new WebSocketLink({
-			uri: WS_URL,
-			options: {
-				timeout: 600000,
-				inactivityTimeout: 0,
-				reconnect: true,
-				reconnectionAttempts: 3
-			}
-		}),
-		httpLink = createHttpLink({
-			uri: API_URL,
-			credentials: 'include'
-		}),
-		authMiddlewareHttp = new ApolloLink((operation, forward) => {
-			operation.setContext(({headers = {}}) => {
-				const {session} = parseCookie();
-				if (!session) return headers;
-				return {
-					headers: {
-						...headers,
-						session
-					}
-				};
-			});
-			return forward(operation);
-		}),
-		{subscriptionClient} = wsLink;
-	
-	subscriptionClient.maxConnectTimeGenerator.duration = () =>
-		subscriptionClient.maxConnectTimeGenerator.max;
-	
-	return new ApolloClient({
-		link: ApolloLink.from([
-			onError(
-				({graphQLErrors, networkError}) => {
-					if (graphQLErrors)
-						graphQLErrors.map(({message, locations, path}) =>
-							console.error(
-								`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-							),
-						);
-					if (networkError) {
-						console.error(networkError);
-					}
-				}
-			),
-			authMiddlewareHttp,
-			split(
-				({query}) => {
-					const {kind, operation} = getMainDefinition(query);
-					return kind === 'OperationDefinition' && operation === 'subscription';
-				},
-				wsLink,
-				httpLink
-			)
-		]),
-		cache: new InMemoryCache()
-	});
+  const wsLink = new WebSocketLink({
+      uri: WS_URL,
+      options: {
+        timeout: 600000,
+        inactivityTimeout: 0,
+        reconnect: true,
+        reconnectionAttempts: 3
+      }
+    }),
+    httpLink = createHttpLink({
+      uri: API_URL,
+      credentials: "include"
+    }),
+    authMiddlewareHttp = new ApolloLink((operation, forward) => {
+      operation.setContext(({headers = {}}) => {
+        const {session} = parseCookie();
+        if (!session) return headers;
+        return {
+          headers: {
+            ...headers,
+            session
+          }
+        };
+      });
+      return forward(operation);
+    }),
+    {subscriptionClient} = wsLink;
+
+  subscriptionClient.maxConnectTimeGenerator.duration = () =>
+    subscriptionClient.maxConnectTimeGenerator.max;
+
+  return new ApolloClient({
+    link: ApolloLink.from([
+      onError(({graphQLErrors, networkError}) => {
+        if (graphQLErrors)
+          graphQLErrors.map(({message, locations, path}) =>
+            console.error(
+              `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+            )
+          );
+        if (networkError) {
+          console.error(networkError);
+        }
+      }),
+      authMiddlewareHttp,
+      split(
+        ({query}) => {
+          const {kind, operation} = getMainDefinition(query);
+          return kind === "OperationDefinition" && operation === "subscription";
+        },
+        wsLink,
+        httpLink
+      )
+    ]),
+    cache: new InMemoryCache()
+  });
 }

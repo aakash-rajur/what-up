@@ -1,20 +1,24 @@
-import PropTypes from 'prop-types'
-import React from 'react';
+import PropTypes from "prop-types";
+import React from "react";
 import {withNewTaskAddition} from "../../graphql/hoc";
 import Input from "../Input/Input";
 
 export function NewTask({newTask, onChange, addNewTask, ...rest}) {
-	let inputProps = {...rest};
-	delete inputProps.onDone;
-	return (
-		<Input value={newTask} onChange={onChange}
-		       onValueReturn={addNewTask} {...inputProps}/>
-	);
+  let inputProps = {...rest};
+  delete inputProps.onDone;
+  return (
+    <Input
+      value={newTask}
+      onChange={onChange}
+      onValueReturn={addNewTask}
+      {...inputProps}
+    />
+  );
 }
 
 NewTask.propTypes = {
-	newTask: PropTypes.string,
-	onChange: PropTypes.func
+  newTask: PropTypes.string,
+  onChange: PropTypes.func
 };
 
 export default withNewTaskAddition(NewTask);

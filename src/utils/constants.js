@@ -7,4 +7,4 @@ export const TASK_CANCELLED = process.env.REACT_APP_TASK_CANCELLED;
 export const TASK_ALL = process.env.REACT_APP_TASK_ALL;
 export const SESSION_CHANGE = process.env.REACT_APP_SESSION_CHANGE;
 export const ON_NOTIFICATION = process.env.REACT_APP_ON_NOTIFICATION;
-export const TASK_TITLE = 'Task description\nDouble click to edit';
+export const TASK_TITLE = "Task description\nDouble click to edit";
