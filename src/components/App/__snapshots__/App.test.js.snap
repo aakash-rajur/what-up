@@ -13,6 +13,7 @@ exports[`App component match snapshot with non-empty list 1`] = `
     <Apollo(NewTask)
       autoFocus={true}
       className="app-width new-task"
+      disabled={true}
       newTask=""
       onChange={[Function]}
       onDone={[Function]}

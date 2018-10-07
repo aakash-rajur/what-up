@@ -64,7 +64,8 @@ export class App extends Component {
     let {filter, newTask} = this.state,
       {
         notification: {data: notificationData, action},
-        stat
+        stat,
+        token
       } = this.props,
       timestamp = this.getLatestTimestamp();
     return (
@@ -79,6 +80,7 @@ export class App extends Component {
             className="app-width new-task"
             onChange={this.onNewTaskChange}
             onDone={this.clearNewTaskInput}
+            disabled={!Boolean(token)}
           />
           <UpdateAll
             className="icon check-all"
